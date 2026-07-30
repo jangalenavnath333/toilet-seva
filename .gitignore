@@ -1,0 +1,28 @@
+# ---- Windows / OS junk ----
+Thumbs.db
+Desktop.ini
+desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# ---- Build / temp ----
+.dist/
+dist/
+node_modules/
+*.log
+
+# ---- Firebase secrets ----
+# टीप: index.html मधील firebaseConfig ही सार्वजनिक client key आहे — ती ठीक आहे.
+# खरी गुपिते (Admin SDK) कधीही commit करू नका:
+serviceAccountKey.json
+*-firebase-adminsdk-*.json
+.env
+.env.*
+.firebase/
+firebase-debug.log
+firestore-debug.log
+
+# ---- Editor ----
+.vscode/
+.idea/
+*.swp

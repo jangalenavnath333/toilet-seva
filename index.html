@@ -1,0 +1,1636 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0e7c5a">
+<meta name="description" content="अहिल्यानगर महानगरपालिका — जवळचे स्वच्छ सार्वजनिक शौचालय शोधा, मानांकन द्या आणि तक्रार नोंदवा.">
+<title>टॉयलेट सेवा — अहिल्यानगर महानगरपालिका</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+/* ============ Theme tokens ============ */
+:root{
+  --bg:#f2f5f7; --bg-soft:#e8edf1; --card:#ffffff; --text:#101820; --muted:#5b6b7a;
+  --line:#dfe6ec; --brand:#0e7c5a; --brand-ink:#0a5f45; --brand-soft:#e4f5ee;
+  --accent:#f59e0b; --danger:#d92d20; --ok:#16a34a; --info:#2563eb;
+  --shadow:0 1px 2px rgba(16,24,40,.06), 0 4px 12px rgba(16,24,40,.06);
+  --radius:16px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#06090b; --bg-soft:#101619; --card:#12191d; --text:#e9eef2; --muted:#96a5b2;
+    --line:#222d34; --brand:#25c08a; --brand-ink:#1aa876; --brand-soft:#0e2a22;
+    --accent:#fbbf24; --danger:#f87171; --ok:#4ade80; --info:#60a5fa;
+    --shadow:0 1px 2px rgba(0,0,0,.5), 0 4px 14px rgba(0,0,0,.45);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#06090b; --bg-soft:#101619; --card:#12191d; --text:#e9eef2; --muted:#96a5b2;
+  --line:#222d34; --brand:#25c08a; --brand-ink:#1aa876; --brand-soft:#0e2a22;
+  --accent:#fbbf24; --danger:#f87171; --ok:#4ade80; --info:#60a5fa;
+  --shadow:0 1px 2px rgba(0,0,0,.5), 0 4px 14px rgba(0,0,0,.45);
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:"Noto Sans Devanagari","Nirmala UI",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  background:var(--bg); color:var(--text); line-height:1.55;
+  padding-bottom:calc(74px + env(safe-area-inset-bottom));
+  overflow-x:hidden;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+h1,h2,h3,h4{margin:0;line-height:1.3}
+a{color:var(--brand)}
+
+/* ============ Header ============ */
+.appbar{
+  position:sticky; top:0; z-index:900;
+  background:linear-gradient(135deg,var(--brand-ink),var(--brand));
+  color:#fff; padding:calc(10px + env(safe-area-inset-top)) 14px 10px;
+  display:flex; align-items:center; gap:10px;
+  box-shadow:0 2px 10px rgba(0,0,0,.18);
+}
+.appbar .logo{
+  width:40px;height:40px;border-radius:11px;background:#fff;padding:4px;flex:0 0 auto;
+  object-fit:contain; box-shadow:0 1px 4px rgba(0,0,0,.2);
+}
+.appbar .titles{flex:1;min-width:0}
+.appbar h1{font-size:19px;font-weight:800;letter-spacing:.2px}
+.appbar .sub{font-size:11.5px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.points-badge{
+  display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.18);
+  border:1px solid rgba(255,255,255,.28); padding:6px 11px;border-radius:999px;
+  font-weight:800;font-size:14px;backdrop-filter:blur(4px);
+}
+.points-badge.pop{animation:pop .5s ease}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.28)}100%{transform:scale(1)}}
+.icon-btn{
+  width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.18);
+  border:1px solid rgba(255,255,255,.28); display:grid;place-items:center;font-size:17px;color:#fff;
+}
+
+/* ============ GPS strip ============ */
+.gps-strip{
+  display:flex;align-items:center;gap:8px;padding:8px 14px;
+  background:var(--card);border-bottom:1px solid var(--line);
+  font-size:12.5px;color:var(--muted);position:sticky;top:0;z-index:5;
+}
+.gps-dot{width:9px;height:9px;border-radius:50%;background:var(--muted);flex:0 0 auto}
+.gps-strip.live .gps-dot{background:var(--ok);box-shadow:0 0 0 0 rgba(22,163,74,.6);animation:ping 1.8s infinite}
+.gps-strip.error .gps-dot{background:var(--danger)}
+@keyframes ping{0%{box-shadow:0 0 0 0 rgba(22,163,74,.55)}70%{box-shadow:0 0 0 9px rgba(22,163,74,0)}100%{box-shadow:0 0 0 0 rgba(22,163,74,0)}}
+.gps-strip strong{color:var(--text)}
+.gps-strip .refresh{color:var(--brand);font-weight:700;font-size:12.5px;flex:0 0 auto}
+.gps-strip .sync{
+  margin-left:auto;flex:0 0 auto;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;
+  background:var(--bg-soft);color:var(--muted);white-space:nowrap;
+}
+.gps-strip .sync.on{background:var(--brand-soft);color:var(--brand-ink)}
+.gps-strip .sync.off{background:rgba(217,45,32,.13);color:var(--danger)}
+:root[data-theme="dark"] .gps-strip .sync.on{color:var(--brand)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .gps-strip .sync.on{color:var(--brand)}}
+
+/* ============ Layout ============ */
+.screen{display:none;padding:12px 14px 20px}
+.screen.active{display:block;animation:fade .22s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+#screen-map.active{padding:0}
+
+/* ============ Search + chips ============ */
+.searchbar{position:relative;margin-bottom:10px}
+.searchbar input{
+  width:100%;padding:12px 40px 12px 40px;border-radius:14px;border:1px solid var(--line);
+  background:var(--card);box-shadow:var(--shadow);font-size:15px;
+}
+.searchbar input:focus{outline:2px solid var(--brand);outline-offset:1px}
+.searchbar .si{position:absolute;left:13px;top:50%;transform:translateY(-50%);opacity:.6}
+.searchbar .clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);
+  width:28px;height:28px;border-radius:50%;display:none;place-items:center;color:var(--muted);background:var(--bg-soft)}
+.searchbar.has-text .clear{display:grid}
+
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{
+  flex:0 0 auto;padding:8px 14px;border-radius:999px;border:1px solid var(--line);
+  background:var(--card);font-size:13.5px;font-weight:600;color:var(--muted);white-space:nowrap;
+  transition:.16s;
+}
+.chip[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:var(--shadow)}
+
+.result-line{font-size:12.5px;color:var(--muted);margin:2px 2px 10px;display:flex;gap:6px;align-items:center}
+
+/* ============ Cards ============ */
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:14px;margin-bottom:12px;box-shadow:var(--shadow);
+}
+.card-head{display:flex;gap:10px;align-items:flex-start}
+.card-head h3{font-size:16.5px;font-weight:800;flex:1;min-width:0}
+.card .area{margin:3px 0 0;font-size:13px;color:var(--muted)}
+.status{
+  flex:0 0 auto;font-size:11.5px;font-weight:800;padding:4px 10px;border-radius:999px;
+  background:rgba(22,163,74,.14);color:var(--ok);
+}
+.status.closed{background:rgba(217,45,32,.14);color:var(--danger)}
+.meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.pill{font-size:12px;font-weight:700;padding:4px 10px;border-radius:8px;background:var(--bg-soft);color:var(--muted)}
+.pill.star{background:rgba(245,158,11,.16);color:var(--accent)}
+.pill.dist{background:var(--brand-soft);color:var(--brand-ink)}
+:root[data-theme="dark"] .pill.dist{color:var(--brand)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .pill.dist{color:var(--brand)}}
+.facilities{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.fac{font-size:11.5px;padding:3px 9px;border-radius:7px;border:1px dashed var(--line);color:var(--muted)}
+.actions{display:flex;gap:8px;margin-top:12px}
+.actions button{
+  flex:1;padding:10px 6px;border-radius:11px;font-size:13px;font-weight:700;
+  background:var(--bg-soft);color:var(--text);border:1px solid var(--line);transition:.15s;
+}
+.actions button:active{transform:scale(.97)}
+.actions .primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+.actions .wa{background:#25D366;color:#062e18;border-color:#25D366}
+
+.empty{text-align:center;padding:48px 20px;color:var(--muted)}
+.empty .big{font-size:44px;margin-bottom:8px}
+
+/* ============ Map ============ */
+#map{height:calc(100vh - 210px);min-height:340px;width:100%}
+.map-legend{
+  display:flex;gap:14px;justify-content:center;flex-wrap:wrap;
+  padding:10px;background:var(--card);border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)
+}
+.map-legend i{width:10px;height:10px;border-radius:50%;display:inline-block;margin-inline-end:5px}
+.leaflet-popup-content{margin:12px 14px;font-family:inherit}
+.popup h4{font-size:15px;margin-bottom:4px}
+.popup p{margin:0 0 8px;font-size:12.5px;color:#555}
+.popup button{background:#0e7c5a;color:#fff;padding:7px 12px;border-radius:9px;font-size:12.5px;font-weight:700;width:100%}
+.mk{border-radius:50%;border:2.5px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.4)}
+.cluster{
+  display:grid;place-items:center;border-radius:50%;color:#fff;font-weight:800;
+  background:rgba(14,124,90,.9);border:3px solid rgba(255,255,255,.85);box-shadow:0 2px 8px rgba(0,0,0,.35);
+}
+.me-dot{border-radius:50%;background:#2563eb;border:3px solid #fff;box-shadow:0 0 0 4px rgba(37,99,235,.25)}
+
+/* ============ Forms ============ */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13.5px;font-weight:700;margin-bottom:6px}
+.field input,.field select,.field textarea{
+  width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);
+  background:var(--card);font-size:15px;
+}
+.field textarea{min-height:96px;resize:vertical}
+.field input:focus,.field select:focus,.field textarea:focus{outline:2px solid var(--brand);outline-offset:1px}
+.hint{font-size:12px;color:var(--muted);margin-top:5px}
+.btn{
+  display:block;width:100%;padding:14px;border-radius:13px;background:var(--brand);color:#fff;
+  font-weight:800;font-size:15.5px;box-shadow:var(--shadow);transition:.15s;
+}
+.btn:active{transform:scale(.985)}
+.btn.ghost{background:var(--card);color:var(--text);border:1px solid var(--line)}
+.btn.danger{background:var(--danger)}
+.btn[disabled]{opacity:.55;pointer-events:none}
+.row{display:flex;gap:10px}
+.row>*{flex:1}
+
+.voice-row{display:flex;gap:10px;align-items:stretch}
+.mic{
+  width:56px;flex:0 0 auto;border-radius:12px;background:var(--brand-soft);color:var(--brand-ink);
+  border:1px solid var(--line);font-size:22px;display:grid;place-items:center;
+}
+:root[data-theme="dark"] .mic{color:var(--brand)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .mic{color:var(--brand)}}
+.mic.rec{background:var(--danger);color:#fff;border-color:var(--danger);animation:rec 1.1s infinite}
+@keyframes rec{50%{opacity:.55}}
+
+.photo-drop{
+  border:2px dashed var(--line);border-radius:14px;padding:22px;text-align:center;
+  color:var(--muted);background:var(--card);
+}
+.photo-drop .big{font-size:32px}
+.photo-preview{position:relative;margin-top:10px;display:none}
+.photo-preview img{width:100%;border-radius:14px;display:block;max-height:260px;object-fit:cover}
+.photo-preview button{
+  position:absolute;top:8px;right:8px;background:rgba(0,0,0,.65);color:#fff;
+  width:32px;height:32px;border-radius:50%;font-size:16px
+}
+
+/* ============ Admin ============ */
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px;box-shadow:var(--shadow)}
+.stat .n{font-size:26px;font-weight:800;line-height:1.15}
+.stat .l{font-size:12px;color:var(--muted);margin-top:2px}
+.stat.a .n{color:var(--brand)} .stat.b .n{color:var(--danger)}
+.stat.c .n{color:var(--accent)} .stat.d .n{color:var(--info)}
+
+.tabs{display:flex;gap:6px;background:var(--bg-soft);padding:5px;border-radius:13px;margin-bottom:14px}
+.tabs button{flex:1;padding:9px 4px;border-radius:9px;font-size:13px;font-weight:700;color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--card);color:var(--text);box-shadow:var(--shadow)}
+
+.chart{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px;box-shadow:var(--shadow)}
+.chart h4{font-size:14px;margin-bottom:12px}
+.bar-row{display:flex;align-items:center;gap:9px;margin-bottom:9px;font-size:12.5px}
+.bar-row .lbl{width:104px;flex:0 0 auto;color:var(--muted)}
+.bar-track{flex:1;height:9px;background:var(--bg-soft);border-radius:99px;overflow:hidden}
+.bar-fill{height:100%;background:linear-gradient(90deg,var(--brand),var(--accent));border-radius:99px;transition:width .5s ease}
+.bar-row .val{width:24px;text-align:right;font-weight:800}
+
+.cmp{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px;margin-bottom:11px;box-shadow:var(--shadow)}
+.cmp-head{display:flex;gap:8px;align-items:center;margin-bottom:6px}
+.cmp-head strong{flex:1;font-size:14.5px}
+.tag{font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px}
+.tag.open{background:rgba(217,45,32,.14);color:var(--danger)}
+.tag.resolved{background:rgba(22,163,74,.14);color:var(--ok)}
+.cmp p{margin:5px 0;font-size:13.5px}
+.cmp .when{font-size:11.5px;color:var(--muted)}
+.cmp img{width:100%;max-height:200px;object-fit:cover;border-radius:11px;margin-top:8px}
+
+.admin-row{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);
+  border-radius:13px;padding:11px 13px;margin-bottom:9px;box-shadow:var(--shadow)}
+.admin-row .info{flex:1;min-width:0}
+.admin-row .info b{font-size:14.5px}
+.admin-row .info span{display:block;font-size:12px;color:var(--muted)}
+.toggle{padding:7px 12px;border-radius:9px;font-size:12.5px;font-weight:800;border:1px solid var(--line);background:var(--bg-soft)}
+
+/* ============ Bottom nav ============ */
+.nav{
+  position:fixed;left:0;right:0;bottom:0;z-index:950;display:flex;
+  background:var(--card);border-top:1px solid var(--line);
+  padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+  box-shadow:0 -2px 14px rgba(0,0,0,.07);
+}
+.nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;color:var(--muted);font-size:11.5px;font-weight:700;border-radius:12px}
+.nav button .ic{font-size:21px;line-height:1}
+.nav button[aria-current="true"]{color:var(--brand)}
+.nav button[aria-current="true"] .ic{transform:translateY(-1px)}
+
+/* ============ Modal + toast ============ */
+.modal{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.5);display:none;align-items:flex-end;justify-content:center}
+.modal.show{display:flex}
+.sheet{background:var(--card);width:100%;max-width:520px;border-radius:22px 22px 0 0;padding:20px 18px calc(22px + env(safe-area-inset-bottom));animation:up .25s ease}
+@keyframes up{from{transform:translateY(30px);opacity:.4}to{transform:none;opacity:1}}
+.sheet h3{font-size:17px;margin-bottom:4px}
+.sheet .sub{font-size:13px;color:var(--muted);margin-bottom:16px}
+.stars{display:flex;justify-content:center;gap:8px;margin:6px 0 18px}
+.stars button{font-size:36px;color:var(--line);transition:.12s}
+.stars button.on{color:var(--accent);transform:scale(1.08)}
+
+.toast{
+  position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom));transform:translate(-50%,20px);
+  background:#101820;color:#fff;padding:12px 18px;border-radius:13px;font-size:13.5px;font-weight:600;
+  z-index:1100;opacity:0;pointer-events:none;transition:.25s;max-width:88vw;text-align:center;
+  box-shadow:0 6px 24px rgba(0,0,0,.35);
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+:root[data-theme="dark"] .toast{background:#e9eef2;color:#06090b}
+
+.login-box{max-width:400px;margin:40px auto;text-align:center}
+.login-box .lock{font-size:52px}
+</style>
+</head>
+<body>
+
+<header class="appbar">
+  <img class="logo" id="palikaLogo" src="logo.png" alt="अहिल्यानगर महानगरपालिका" onerror="this.onerror=null;this.src='icon.svg'">
+  <div class="titles">
+    <h1>टॉयलेट सेवा</h1>
+    <div class="sub">अहिल्यानगर महानगरपालिका</div>
+  </div>
+  <div class="points-badge" id="pointsBadge" title="नागरिक गुण">🏆 <span id="pointsVal">0</span></div>
+  <button class="icon-btn" id="themeBtn" aria-label="डार्क मोड बदला">🌙</button>
+</header>
+
+<div class="gps-strip" id="gpsStrip">
+  <span class="gps-dot"></span>
+  <span id="gpsText">स्थान शोधत आहे…</span>
+  <span class="sync" id="syncBadge" title="क्लाउड जोडणी">☁️ जोडत आहे…</span>
+  <button class="refresh" id="gpsRefresh">पुन्हा शोधा</button>
+</div>
+
+<!-- ================= Screen 1 : यादी ================= -->
+<main class="screen active" id="screen-list">
+  <div class="searchbar" id="searchWrap">
+    <span class="si">🔍</span>
+    <input id="search" type="search" placeholder="नाव किंवा परिसर शोधा…" autocomplete="off" aria-label="शोधा">
+    <button class="clear" id="searchClear" aria-label="शोध पुसा">✕</button>
+  </div>
+
+  <div class="chips" id="chips" role="group" aria-label="फिल्टर">
+    <button class="chip" data-filter="all" aria-pressed="true">सर्व</button>
+    <button class="chip" data-filter="ladies" aria-pressed="false">महिला</button>
+    <button class="chip" data-filter="divyang" aria-pressed="false">दिव्यांग</button>
+    <button class="chip" data-filter="open" aria-pressed="false">उपलब्ध</button>
+    <button class="chip" data-filter="top" aria-pressed="false">★★★★</button>
+  </div>
+
+  <div class="result-line" id="resultLine"></div>
+  <div id="cards"></div>
+</main>
+
+<!-- ================= Screen 2 : नकाशा ================= -->
+<main class="screen" id="screen-map">
+  <div id="map"></div>
+  <div class="map-legend">
+    <span><i style="background:#16a34a"></i>चालू</span>
+    <span><i style="background:#d92d20"></i>बंद</span>
+    <span><i style="background:#2563eb"></i>तुमचे स्थान</span>
+    <span>झूम आउट → क्लस्टर</span>
+  </div>
+</main>
+
+<!-- ================= Screen 3 : तक्रार ================= -->
+<main class="screen" id="screen-complaint">
+  <h2 style="font-size:19px;margin-bottom:4px">तक्रार नोंदवा</h2>
+  <p class="hint" style="margin-bottom:16px">तुमची तक्रार थेट महानगरपालिकेकडे पोहोचते. नोंद केल्यावर <b>+10 गुण</b> मिळतात.</p>
+
+  <div class="field">
+    <label for="cToilet">टॉयलेट निवडा</label>
+    <select id="cToilet"></select>
+  </div>
+
+  <div class="field">
+    <label for="cType">तक्रारीचा प्रकार</label>
+    <select id="cType">
+      <option value="स्वच्छता नाही">स्वच्छता नाही</option>
+      <option value="पाणी नाही">पाणी नाही</option>
+      <option value="वीज / दिवे नाहीत">वीज / दिवे नाहीत</option>
+      <option value="दरवाजा / कुलूप तुटले">दरवाजा / कुलूप तुटले</option>
+      <option value="दुर्गंधी">दुर्गंधी</option>
+      <option value="बंद आहे">बंद आहे</option>
+      <option value="इतर">इतर</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label for="cText">तपशील — 🎤 दाबून मराठीत बोला</label>
+    <div class="voice-row">
+      <textarea id="cText" placeholder="काय समस्या आहे ते लिहा किंवा माइक दाबून बोला…"></textarea>
+      <button class="mic" id="micBtn" type="button" aria-label="आवाजाने तक्रार नोंदवा">🎤</button>
+    </div>
+    <p class="hint" id="micHint">मराठी व्हॉइस टायपिंग (mr-IN) उपलब्ध आहे.</p>
+  </div>
+
+  <div class="field">
+    <label>फोटो जोडा <span style="font-weight:500;color:var(--muted)">(ऐच्छिक)</span></label>
+    <label class="photo-drop" for="cPhoto">
+      <div class="big">📸</div>
+      <div style="font-weight:700;color:var(--text)">कॅमेरा उघडा किंवा फोटो निवडा</div>
+      <div style="font-size:12px">पुरावा असल्यास तक्रार लवकर सुटते</div>
+    </label>
+    <input id="cPhoto" type="file" accept="image/*" capture="environment" hidden>
+    <div class="photo-preview" id="photoPreview">
+      <img id="photoImg" alt="जोडलेला फोटो">
+      <button type="button" id="photoRemove" aria-label="फोटो काढा">✕</button>
+    </div>
+  </div>
+
+  <button class="btn" id="submitComplaint">तक्रार पाठवा</button>
+  <p class="hint" style="text-align:center;margin-top:10px">तक्रार सुटल्यावर तुम्हाला नोटिफिकेशन येईल <b>(+15 गुण)</b></p>
+</main>
+
+<!-- ================= Screen 4 : प्रशासन ================= -->
+<main class="screen" id="screen-admin">
+  <div id="adminLogin" class="login-box">
+    <div class="lock">🔐</div>
+    <h2 style="font-size:19px;margin:8px 0 4px">प्रशासन लॉगिन</h2>
+    <p class="hint" style="margin-bottom:18px">फक्त महानगरपालिका अधिकाऱ्यांसाठी</p>
+    <div class="field"><input id="adminEmail" type="email" placeholder="ईमेल" autocomplete="username"></div>
+    <div class="field"><input id="adminPass" type="password" placeholder="पासवर्ड" autocomplete="current-password"></div>
+    <button class="btn" id="adminLoginBtn">लॉगिन करा</button>
+    <p class="hint" id="adminAuthNote" style="margin-top:12px">Firebase Auth ने पडताळणी होते.</p>
+  </div>
+
+  <div id="adminPanel" hidden>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <div style="flex:1;min-width:0">
+        <h2 style="font-size:19px">प्रशासन डॅशबोर्ड</h2>
+        <div class="hint" id="adminWho" style="margin-top:0"></div>
+      </div>
+      <button class="toggle" id="adminLogout">बाहेर पडा</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat a"><div class="n" id="stTotal">0</div><div class="l">एकूण टॉयलेट</div></div>
+      <div class="stat b"><div class="n" id="stOpen">0</div><div class="l">प्रलंबित तक्रारी</div></div>
+      <div class="stat c"><div class="n" id="stRating">0.0</div><div class="l">सरासरी मानांकन</div></div>
+      <div class="stat d"><div class="n" id="stResolved">0</div><div class="l">आज सोडवलेल्या</div></div>
+    </div>
+
+    <div class="chart">
+      <h4>📊 सर्वाधिक तक्रारींचे प्रकार</h4>
+      <div id="chartBars"><p class="hint">अद्याप तक्रारी नाहीत.</p></div>
+    </div>
+
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-tab="complaints">तक्रारी</button>
+      <button role="tab" aria-selected="false" data-tab="toilets">टॉयलेट यादी</button>
+      <button role="tab" aria-selected="false" data-tab="add">नवीन नोंद</button>
+    </div>
+
+    <div id="tab-complaints"></div>
+    <div id="tab-toilets" hidden></div>
+
+    <div id="tab-add" hidden>
+      <div class="field"><label for="nName">टॉयलेटचे नाव</label><input id="nName" placeholder="उदा. सार्वजनिक शौचालय, गांधी मैदान"></div>
+      <div class="field"><label for="nArea">परिसर</label><input id="nArea" placeholder="उदा. सावेडी"></div>
+      <div class="row">
+        <div class="field"><label for="nLat">अक्षांश</label><input id="nLat" type="number" step="0.000001" placeholder="19.0948"></div>
+        <div class="field"><label for="nLng">रेखांश</label><input id="nLng" type="number" step="0.000001" placeholder="74.7480"></div>
+      </div>
+      <button class="btn ghost" id="useMyLoc" style="margin-bottom:14px">📍 माझे सध्याचे स्थान वापरा</button>
+      <div class="field">
+        <label for="nType">प्रकार</label>
+        <select id="nType">
+          <option value="both">महिला + पुरुष</option>
+          <option value="ladies">फक्त महिला</option>
+          <option value="gents">फक्त पुरुष</option>
+        </select>
+      </div>
+      <div class="field">
+        <label><input type="checkbox" id="nDivyang" style="width:auto;margin-inline-end:8px">दिव्यांगांसाठी सोय आहे</label>
+      </div>
+      <div class="field">
+        <label for="nFac">सुविधा (स्वल्पविरामाने वेगळ्या)</label>
+        <input id="nFac" placeholder="पाणी, वीज, सॅनिटरी पॅड">
+      </div>
+      <button class="btn" id="addToilet">टॉयलेट जोडा</button>
+    </div>
+  </div>
+</main>
+
+<!-- ================= Nav ================= -->
+<nav class="nav" role="tablist">
+  <button data-screen="list" aria-current="true"><span class="ic">📋</span>यादी</button>
+  <button data-screen="map" aria-current="false"><span class="ic">🗺️</span>नकाशा</button>
+  <button data-screen="complaint" aria-current="false"><span class="ic">📝</span>तक्रार</button>
+  <button data-screen="admin" aria-current="false"><span class="ic">🛡️</span>प्रशासन</button>
+</nav>
+
+<!-- ================= Rating sheet ================= -->
+<div class="modal" id="rateModal">
+  <div class="sheet">
+    <h3 id="rateTitle">मानांकन द्या</h3>
+    <p class="sub">तुमच्या मानांकनामुळे इतर नागरिकांना मदत होते — <b>+5 गुण</b></p>
+    <div class="stars" id="starRow">
+      <button data-v="1">★</button><button data-v="2">★</button><button data-v="3">★</button>
+      <button data-v="4">★</button><button data-v="5">★</button>
+    </div>
+    <button class="btn" id="rateSave" disabled>मानांकन नोंदवा</button>
+    <button class="btn ghost" id="rateCancel" style="margin-top:9px">रद्द करा</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Firebase SDK (compat build — global `firebase` namespace) -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
+<script>
+"use strict";
+
+/* =====================================================================
+   टॉयलेट सेवा v2.0 — अहिल्यानगर महानगरपालिका
+   ===================================================================== */
+
+var LS = {
+  toilets:'ts_toilets', complaints:'ts_complaints', points:'ts_points',
+  theme:'ts_theme', rated:'ts_rated', admin:'ts_admin'
+};
+var ADMIN_PASSWORD = 'admin123';
+var PTS = { rating:5, complaint:10, resolved:15 };
+var AHILYANAGAR = [19.0948, 74.7480];
+
+/* ---------- 10 नमुना टॉयलेट (अहिल्यानगर) ---------- */
+var SEED_TOILETS = [
+  { id:'t1', name:'सुलभ शौचालय, तारकपूर बस स्थानक', area:'तारकपूर', lat:19.0862, lng:74.7386,
+    type:'both', divyang:true, open:true, rating:4.3, votes:52, timing:'सकाळी 5 – रात्री 11',
+    facilities:['पाणी','वीज','सॅनिटरी पॅड','दिव्यांग रॅम्प'] },
+  { id:'t2', name:'सार्वजनिक शौचालय, मार्केट यार्ड', area:'नागापूर', lat:19.0701, lng:74.7182,
+    type:'both', divyang:false, open:true, rating:3.6, votes:31, timing:'सकाळी 6 – रात्री 10',
+    facilities:['पाणी','वीज'] },
+  { id:'t3', name:'रेल्वे स्थानक शौचालय', area:'रेल्वे स्टेशन रोड', lat:19.0817, lng:74.7215,
+    type:'both', divyang:true, open:true, rating:4.0, votes:74, timing:'24 तास',
+    facilities:['पाणी','वीज','दिव्यांग रॅम्प','स्वच्छता कर्मचारी'] },
+  { id:'t4', name:'महिला स्वच्छतागृह, दिल्ली गेट', area:'दिल्ली गेट', lat:19.0946, lng:74.7452,
+    type:'ladies', divyang:true, open:true, rating:4.6, votes:47, timing:'सकाळी 6 – रात्री 9',
+    facilities:['पाणी','वीज','सॅनिटरी पॅड','हिरकणी कक्ष'] },
+  { id:'t5', name:'सार्वजनिक शौचालय, चितळे रोड', area:'चितळे रोड', lat:19.0938, lng:74.7401,
+    type:'both', divyang:false, open:false, rating:2.8, votes:23, timing:'सकाळी 7 – रात्री 8',
+    facilities:['पाणी'] },
+  { id:'t6', name:'वाडिया पार्क शौचालय', area:'वाडिया पार्क', lat:19.0975, lng:74.7368,
+    type:'both', divyang:true, open:true, rating:4.4, votes:66, timing:'सकाळी 5 – रात्री 10',
+    facilities:['पाणी','वीज','दिव्यांग रॅम्प','बेबी केअर'] },
+  { id:'t7', name:'सुलभ शौचालय, सावेडी नाका', area:'सावेडी', lat:19.1092, lng:74.7395,
+    type:'both', divyang:false, open:true, rating:3.9, votes:38, timing:'सकाळी 6 – रात्री 10',
+    facilities:['पाणी','वीज'] },
+  { id:'t8', name:'भिंगार बाजारपेठ शौचालय', area:'भिंगार', lat:19.1512, lng:74.7825,
+    type:'both', divyang:false, open:true, rating:3.2, votes:19, timing:'सकाळी 6 – रात्री 9',
+    facilities:['पाणी'] },
+  { id:'t9', name:'किल्ला परिसर शौचालय', area:'अहमदनगर किल्ला', lat:19.0983, lng:74.7588,
+    type:'both', divyang:true, open:true, rating:4.1, votes:29, timing:'सकाळी 8 – संध्याकाळी 6',
+    facilities:['पाणी','वीज','दिव्यांग रॅम्प'] },
+  { id:'t10', name:'महिला शौचालय, केडगाव देवी', area:'केडगाव', lat:19.0602, lng:74.7318,
+    type:'ladies', divyang:false, open:true, rating:3.7, votes:26, timing:'सकाळी 6 – रात्री 9',
+    facilities:['पाणी','सॅनिटरी पॅड'] }
+];
+
+/* ---------- State ---------- */
+var state = {
+  toilets: load(LS.toilets, SEED_TOILETS),
+  complaints: load(LS.complaints, []),
+  points: load(LS.points, 0),
+  rated: load(LS.rated, {}),
+  filter: 'all',
+  query: '',
+  pos: null,
+  accuracy: null,
+  screen: 'list',
+  isAdmin: load(LS.admin, false),
+  adminUser: '',
+  adminTab: 'complaints',
+  rateTarget: null,
+  rateValue: 0,
+  photo: null
+};
+
+function load(key, fallback){
+  try {
+    var raw = localStorage.getItem(key);
+    if (raw === null) return fallback;
+    return JSON.parse(raw);
+  } catch(e){ return fallback; }
+}
+function save(key, val){
+  try { localStorage.setItem(key, JSON.stringify(val)); }
+  catch(e){ toast('साठवण भरली आहे — जुन्या नोंदी काढा'); }
+}
+function $(sel){ return document.querySelector(sel); }
+function $all(sel){ return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+function esc(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+    return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
+  });
+}
+
+/* ---------- Toast ---------- */
+var toastTimer = null;
+function toast(msg){
+  var el = $('#toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ el.classList.remove('show'); }, 2800);
+}
+
+/* =====================================================================
+   Firebase — Auth + Firestore (compat)
+   ॲप Firebase शिवायही चालते: SDK न मिळाल्यास localStorage वापरले जाते.
+   ===================================================================== */
+var firebaseConfig = {
+  apiKey: "AIzaSyAXD8GJ6QT_4Ud7XXpJil_wGsBMQbw5vas",
+  authDomain: "toilet-seva.firebaseapp.com",
+  projectId: "toilet-seva",
+  storageBucket: "toilet-seva.firebasestorage.app",
+  messagingSenderId: "909854699940",
+  appId: "1:909854699940:web:845c91544a551919fed131"
+};
+var ADMIN_EMAIL = 'admin@toiletseva.com';
+
+var fb = {
+  ok: false,          // SDK लोड झाला व init यशस्वी
+  db: null,
+  auth: null,
+  seeded: false,
+  unsubToilets: null,
+  unsubComplaints: null
+};
+
+/* प्रत्येक उपकरणासाठी एक ओळख — ratings मध्ये दुबार मतदान टाळण्यासाठी */
+var DEVICE_ID = load('ts_device', null);
+if (!DEVICE_ID){
+  DEVICE_ID = 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  save('ts_device', DEVICE_ID);
+}
+
+function setSync(kind, text){
+  var el = $('#syncBadge');
+  if (!el) return;
+  el.className = 'sync' + (kind ? ' ' + kind : '');
+  el.textContent = text;
+}
+
+/* Firestore Timestamp किंवा साधा number — दोन्ही चालावेत */
+function ms(v){
+  if (!v) return 0;
+  if (typeof v === 'number') return v;
+  if (typeof v.toMillis === 'function') return v.toMillis();
+  if (typeof v.seconds === 'number') return v.seconds * 1000;
+  return 0;
+}
+
+function initFirebase(){
+  if (typeof firebase === 'undefined' || !firebase.initializeApp){
+    setSync('off', '📴 स्थानिक');
+    console.warn('Firebase SDK लोड झाला नाही — localStorage वापरत आहे.');
+    return;
+  }
+  try {
+    firebase.initializeApp(firebaseConfig);
+    fb.db = firebase.firestore();
+    fb.auth = firebase.auth();
+    fb.ok = true;
+  } catch (err){
+    setSync('off', '📴 स्थानिक');
+    console.warn('Firebase सुरू होऊ शकले नाही:', err);
+    return;
+  }
+
+  // ऑफलाइन असतानाही Firestore चालावे
+  fb.db.enablePersistence({ synchronizeTabs: true }).catch(function(err){
+    console.warn('Firestore offline persistence अनुपलब्ध:', err && err.code);
+  });
+
+  setSync('', '☁️ जोडत आहे…');
+  watchToilets();
+  watchAuth();
+}
+
+/* ---------- toilets: लोड + पहिल्यांदा 10 नमुने भरा ---------- */
+function watchToilets(){
+  fb.unsubToilets = fb.db.collection('toilets').onSnapshot(function(snap){
+    if (snap.empty && !fb.seeded){
+      fb.seeded = true;
+      seedToilets();
+      return;
+    }
+    if (snap.empty) return;
+
+    state.toilets = snap.docs.map(function(d){
+      var t = d.data();
+      t.id = d.id;
+      t.rating = Number(t.rating) || 0;
+      t.votes = Number(t.votes) || 0;
+      t.facilities = t.facilities || [];
+      return t;
+    });
+    save(LS.toilets, state.toilets);
+    setSync('on', '☁️ क्लाउड');
+
+    renderCards();
+    fillToiletSelect();
+    refreshMarkers();
+    if (state.isAdmin) renderAdmin();
+  }, function(err){
+    console.warn('toilets वाचता आले नाहीत:', err);
+    setSync('off', '📴 स्थानिक');
+    toast('क्लाउडशी जोडता आले नाही — स्थानिक माहिती वापरत आहे');
+  });
+}
+
+function seedToilets(){
+  var batch = fb.db.batch();
+  SEED_TOILETS.forEach(function(t){
+    var copy = JSON.parse(JSON.stringify(t));
+    delete copy.id;
+    copy.createdAt = Date.now();
+    batch.set(fb.db.collection('toilets').doc(t.id), copy);
+  });
+  batch.commit().then(function(){
+    toast('10 नमुना टॉयलेट क्लाउडवर नोंदवले ✅');
+  }).catch(function(err){
+    fb.seeded = false;
+    console.warn('seed अयशस्वी:', err);
+    setSync('off', '📴 स्थानिक');
+  });
+}
+
+/* ---------- auth ---------- */
+function watchAuth(){
+  /* Firebase असताना localStorage मधील जुना admin flag ग्राह्य धरू नका */
+  state.isAdmin = false;
+  save(LS.admin, false);
+  setAdminUI();
+
+  fb.auth.onAuthStateChanged(function(user){
+    state.isAdmin = !!user;
+    state.adminUser = user ? (user.email || '') : '';
+    save(LS.admin, state.isAdmin);
+    setAdminUI();
+    if (user) watchComplaints();
+    else stopComplaints();
+  });
+}
+
+/* ---------- complaints: onSnapshot थेट यादी ---------- */
+function watchComplaints(){
+  if (!fb.ok || fb.unsubComplaints) return;
+  fb.unsubComplaints = fb.db.collection('complaints')
+    .orderBy('createdAt', 'desc').limit(200)
+    .onSnapshot(function(snap){
+      state.complaints = snap.docs.map(function(d){
+        var c = d.data();
+        c.id = d.id;
+        c.createdAt = ms(c.createdAt);
+        c.resolvedAt = ms(c.resolvedAt) || null;
+        return c;
+      });
+      save(LS.complaints, state.complaints);
+      renderAdmin();
+    }, function(err){
+      console.warn('complaints वाचता आल्या नाहीत:', err);
+      toast('तक्रारी क्लाउडवरून मिळाल्या नाहीत');
+    });
+}
+function stopComplaints(){
+  if (fb.unsubComplaints){ fb.unsubComplaints(); fb.unsubComplaints = null; }
+}
+
+/* =====================================================================
+   Theme — prefers-color-scheme + manual override
+   ===================================================================== */
+function currentTheme(){
+  var saved = load(LS.theme, null);
+  if (saved) return saved;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function applyTheme(){
+  var saved = load(LS.theme, null);
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+  else document.documentElement.removeAttribute('data-theme');
+  var dark = currentTheme() === 'dark';
+  $('#themeBtn').textContent = dark ? '☀️' : '🌙';
+  var meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', dark ? '#06090b' : '#0e7c5a');
+}
+$('#themeBtn').addEventListener('click', function(){
+  var next = currentTheme() === 'dark' ? 'light' : 'dark';
+  save(LS.theme, next);
+  applyTheme();
+  toast(next === 'dark' ? 'डार्क मोड चालू' : 'लाइट मोड चालू');
+});
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(){
+  if (!load(LS.theme, null)) applyTheme();
+});
+
+/* =====================================================================
+   Points
+   ===================================================================== */
+function addPoints(n, why){
+  state.points += n;
+  save(LS.points, state.points);
+  renderPoints(true);
+  if (why) toast(why + ' (+' + n + ' गुण)');
+}
+function renderPoints(animate){
+  $('#pointsVal').textContent = state.points;
+  if (animate){
+    var b = $('#pointsBadge');
+    b.classList.remove('pop');
+    void b.offsetWidth;
+    b.classList.add('pop');
+  }
+}
+
+/* =====================================================================
+   Live GPS tracking — watchPosition
+   ===================================================================== */
+var watchId = null;
+function startTracking(){
+  var strip = $('#gpsStrip');
+  if (!('geolocation' in navigator)){
+    strip.classList.add('error');
+    $('#gpsText').textContent = 'या उपकरणात GPS उपलब्ध नाही';
+    return;
+  }
+  if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+  $('#gpsText').textContent = 'स्थान शोधत आहे…';
+  strip.classList.remove('error','live');
+
+  watchId = navigator.geolocation.watchPosition(function(p){
+    var moved = !state.pos || haversine(state.pos[0], state.pos[1], p.coords.latitude, p.coords.longitude) > 0.005;
+    state.pos = [p.coords.latitude, p.coords.longitude];
+    state.accuracy = p.coords.accuracy;
+    strip.classList.add('live');
+    strip.classList.remove('error');
+    $('#gpsText').innerHTML = '<strong>थेट स्थान चालू</strong> — अचूकता ' + Math.round(p.coords.accuracy) + ' मी.';
+    if (moved){ renderCards(); }
+    updateMeMarker();
+  }, function(err){
+    strip.classList.add('error');
+    strip.classList.remove('live');
+    var msg = err.code === 1 ? 'स्थान परवानगी नाकारली — यादी नावानुसार दाखवली आहे'
+            : err.code === 3 ? 'स्थान मिळण्यास उशीर होत आहे'
+            : 'स्थान मिळाले नाही';
+    $('#gpsText').textContent = msg;
+    renderCards();
+  }, { enableHighAccuracy:true, maximumAge:5000, timeout:15000 });
+}
+$('#gpsRefresh').addEventListener('click', function(){ startTracking(); toast('स्थान पुन्हा शोधत आहे…'); });
+
+function haversine(lat1, lon1, lat2, lon2){
+  var R = 6371, toRad = Math.PI/180;
+  var dLat = (lat2-lat1)*toRad, dLon = (lon2-lon1)*toRad;
+  var a = Math.sin(dLat/2)*Math.sin(dLat/2) +
+          Math.cos(lat1*toRad)*Math.cos(lat2*toRad)*Math.sin(dLon/2)*Math.sin(dLon/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+function distanceTo(t){
+  if (!state.pos) return null;
+  return haversine(state.pos[0], state.pos[1], t.lat, t.lng);
+}
+function fmtDistance(km){
+  if (km === null) return null;
+  return km < 1 ? Math.round(km*1000) + ' मी.' : km.toFixed(1) + ' कि.मी.';
+}
+
+/* =====================================================================
+   List screen — search + filters + cards
+   ===================================================================== */
+function typeLabel(t){
+  return t.type === 'ladies' ? 'फक्त महिला' : t.type === 'gents' ? 'फक्त पुरुष' : 'महिला + पुरुष';
+}
+function visibleToilets(){
+  var q = state.query.trim().toLowerCase();
+  var list = state.toilets.filter(function(t){
+    if (q && (t.name + ' ' + t.area).toLowerCase().indexOf(q) === -1) return false;
+    if (state.filter === 'ladies' && t.type === 'gents') return false;
+    if (state.filter === 'divyang' && !t.divyang) return false;
+    if (state.filter === 'open' && !t.open) return false;
+    if (state.filter === 'top' && t.rating < 4) return false;
+    return true;
+  });
+  if (state.pos){
+    list.sort(function(a,b){ return distanceTo(a) - distanceTo(b); });
+  } else {
+    list.sort(function(a,b){ return b.rating - a.rating; });
+  }
+  return list;
+}
+
+function renderCards(){
+  var list = visibleToilets();
+  var wrap = $('#cards');
+
+  $('#resultLine').textContent = state.pos
+    ? list.length + ' टॉयलेट — जवळच्या क्रमाने'
+    : list.length + ' टॉयलेट — मानांकनानुसार';
+
+  if (!list.length){
+    wrap.innerHTML = '<div class="empty"><div class="big">🔍</div>' +
+      '<p>या शोधाशी जुळणारे टॉयलेट सापडले नाही.</p>' +
+      '<p style="font-size:13px">दुसरा शब्द वापरून पहा किंवा फिल्टर बदला.</p></div>';
+    return;
+  }
+
+  wrap.innerHTML = list.map(function(t){
+    var d = fmtDistance(distanceTo(t));
+    return '<article class="card">' +
+      '<div class="card-head">' +
+        '<div style="flex:1;min-width:0">' +
+          '<h3>' + esc(t.name) + '</h3>' +
+          '<p class="area">📍 ' + esc(t.area) + ' · ' + esc(t.timing || '') + '</p>' +
+        '</div>' +
+        '<span class="status' + (t.open ? '' : ' closed') + '">' + (t.open ? 'चालू' : 'बंद') + '</span>' +
+      '</div>' +
+      '<div class="meta">' +
+        (d ? '<span class="pill dist">🚶 ' + d + '</span>' : '') +
+        '<span class="pill star">★ ' + t.rating.toFixed(1) + ' (' + t.votes + ')</span>' +
+        '<span class="pill">' + typeLabel(t) + '</span>' +
+        (t.divyang ? '<span class="pill">♿ दिव्यांग सोय</span>' : '') +
+      '</div>' +
+      '<div class="facilities">' +
+        (t.facilities || []).map(function(f){ return '<span class="fac">' + esc(f) + '</span>'; }).join('') +
+      '</div>' +
+      '<div class="actions">' +
+        '<button class="primary" data-act="nav" data-id="' + t.id + '">🧭 मार्ग</button>' +
+        '<button data-act="rate" data-id="' + t.id + '">★ मानांकन</button>' +
+        '<button class="wa" data-act="share" data-id="' + t.id + '">शेअर</button>' +
+      '</div>' +
+    '</article>';
+  }).join('');
+}
+
+$('#cards').addEventListener('click', function(e){
+  var btn = e.target.closest('button[data-act]');
+  if (!btn) return;
+  var t = state.toilets.filter(function(x){ return x.id === btn.dataset.id; })[0];
+  if (!t) return;
+  if (btn.dataset.act === 'nav') navigateTo(t);
+  if (btn.dataset.act === 'rate') openRate(t);
+  if (btn.dataset.act === 'share') shareWhatsApp(t);
+});
+
+/* Search */
+$('#search').addEventListener('input', function(e){
+  state.query = e.target.value;
+  $('#searchWrap').classList.toggle('has-text', !!state.query);
+  renderCards();
+});
+$('#searchClear').addEventListener('click', function(){
+  state.query = '';
+  $('#search').value = '';
+  $('#searchWrap').classList.remove('has-text');
+  renderCards();
+  $('#search').focus();
+});
+
+/* Filter chips */
+$('#chips').addEventListener('click', function(e){
+  var chip = e.target.closest('.chip');
+  if (!chip) return;
+  state.filter = chip.dataset.filter;
+  $all('.chip').forEach(function(c){ c.setAttribute('aria-pressed', String(c === chip)); });
+  renderCards();
+});
+
+/* =====================================================================
+   Navigate + WhatsApp share
+   ===================================================================== */
+function navigateTo(t){
+  var url = 'https://www.google.com/maps/dir/?api=1&destination=' + t.lat + ',' + t.lng;
+  window.open(url, '_blank', 'noopener');
+}
+function shareWhatsApp(t){
+  var d = fmtDistance(distanceTo(t));
+  var map = 'https://www.google.com/maps/search/?api=1&query=' + t.lat + ',' + t.lng;
+  var text =
+    '🚻 *' + t.name + '*\n' +
+    '📍 ' + t.area + (d ? ' (' + d + ' अंतरावर)' : '') + '\n' +
+    '⭐ मानांकन: ' + t.rating.toFixed(1) + '/5\n' +
+    '🕒 वेळ: ' + (t.timing || '—') + '\n' +
+    (t.divyang ? '♿ दिव्यांगांसाठी सोय आहे\n' : '') +
+    '🗺️ नकाशा: ' + map + '\n\n' +
+    '— टॉयलेट सेवा | अहिल्यानगर महानगरपालिका';
+
+  var wa = 'https://wa.me/?text=' + encodeURIComponent(text);
+  if (navigator.share){
+    navigator.share({ title: t.name, text: text }).catch(function(){ window.open(wa, '_blank', 'noopener'); });
+  } else {
+    window.open(wa, '_blank', 'noopener');
+  }
+}
+
+/* =====================================================================
+   Rating sheet — +5 गुण
+   ===================================================================== */
+function openRate(t){
+  state.rateTarget = t;
+  state.rateValue = state.rated[t.id] || 0;
+  $('#rateTitle').textContent = t.name;
+  paintStars();
+  $('#rateSave').disabled = state.rateValue === 0;
+  $('#rateModal').classList.add('show');
+}
+function paintStars(){
+  $all('#starRow button').forEach(function(b){
+    b.classList.toggle('on', Number(b.dataset.v) <= state.rateValue);
+  });
+}
+$('#starRow').addEventListener('click', function(e){
+  var b = e.target.closest('button');
+  if (!b) return;
+  state.rateValue = Number(b.dataset.v);
+  paintStars();
+  $('#rateSave').disabled = false;
+});
+$('#rateCancel').addEventListener('click', function(){ $('#rateModal').classList.remove('show'); });
+$('#rateModal').addEventListener('click', function(e){
+  if (e.target === $('#rateModal')) $('#rateModal').classList.remove('show');
+});
+/* सरासरी नव्याने मोजा — पुन्हा मानांकन दिल्यास मत वाढत नाही, फक्त बदलते */
+function recomputeRating(t, prev, next){
+  var sum = t.rating * t.votes;
+  var votes = t.votes;
+  if (prev){ sum = sum - prev + next; }
+  else { sum = sum + next; votes = votes + 1; }
+  return { rating: Number((sum / Math.max(votes, 1)).toFixed(2)), votes: votes };
+}
+
+$('#rateSave').addEventListener('click', function(){
+  var t = state.rateTarget;
+  var value = state.rateValue;
+  if (!t || !value) return;
+
+  var prev = state.rated[t.id] || 0;
+  var already = !!prev;
+
+  // स्थानिक अद्ययावत (लगेच दिसण्यासाठी)
+  var agg = recomputeRating(t, prev, value);
+  t.rating = agg.rating;
+  t.votes = agg.votes;
+  state.rated[t.id] = value;
+  save(LS.toilets, state.toilets);
+  save(LS.rated, state.rated);
+
+  $('#rateModal').classList.remove('show');
+  renderCards();
+  refreshMarkers();
+  if (!already) addPoints(PTS.rating, 'मानांकनासाठी धन्यवाद!');
+  else toast('मानांकन अद्ययावत केले');
+
+  if (!fb.ok) return;
+
+  /* ratings संग्रह + toilet ची सरासरी — transaction मध्ये, म्हणजे
+     एकाच वेळी अनेकांनी मानांकन दिले तरी बेरीज चुकत नाही */
+  var ratingRef = fb.db.collection('ratings').doc(t.id + '_' + DEVICE_ID);
+  var toiletRef = fb.db.collection('toilets').doc(t.id);
+
+  fb.db.runTransaction(function(tx){
+    return tx.get(toiletRef).then(function(tSnap){
+      return tx.get(ratingRef).then(function(rSnap){
+        if (!tSnap.exists) return;
+        var data = tSnap.data();
+        var cur = { rating: Number(data.rating) || 0, votes: Number(data.votes) || 0 };
+        var before = rSnap.exists ? (Number(rSnap.data().value) || 0) : 0;
+        var next = recomputeRating(cur, before, value);
+
+        tx.update(toiletRef, { rating: next.rating, votes: next.votes });
+        tx.set(ratingRef, {
+          toiletId: t.id,
+          toiletName: t.name,
+          value: value,
+          deviceId: DEVICE_ID,
+          createdAt: rSnap.exists ? (rSnap.data().createdAt || Date.now()) : Date.now(),
+          updatedAt: Date.now()
+        });
+      });
+    });
+  }).catch(function(err){
+    console.warn('मानांकन साठवता आले नाही:', err);
+    toast('मानांकन क्लाउडवर पोहोचले नाही — नंतर पुन्हा प्रयत्न होईल');
+  });
+});
+
+/* =====================================================================
+   Map — Leaflet + OSM, live blue dot, zoom clustering
+   ===================================================================== */
+var map = null, markerLayer = null, meMarker = null, meCircle = null;
+
+function initMap(){
+  if (map) return;
+  map = L.map('map', { zoomControl:true, attributionControl:true })
+         .setView(state.pos || AHILYANAGAR, 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(map);
+  markerLayer = L.layerGroup().addTo(map);
+  map.on('zoomend', refreshMarkers);
+  refreshMarkers();
+  updateMeMarker();
+}
+
+function toiletIcon(t){
+  var color = t.open ? '#16a34a' : '#d92d20';
+  return L.divIcon({
+    className: '',
+    html: '<div class="mk" style="width:20px;height:20px;background:' + color + '"></div>',
+    iconSize: [20,20], iconAnchor: [10,10]
+  });
+}
+function clusterIcon(n){
+  var size = n < 5 ? 36 : n < 10 ? 44 : 52;
+  return L.divIcon({
+    className: '',
+    html: '<div class="cluster" style="width:' + size + 'px;height:' + size + 'px;font-size:' + (size/2.7) + 'px">' + n + '</div>',
+    iconSize: [size,size], iconAnchor: [size/2, size/2]
+  });
+}
+
+function refreshMarkers(){
+  if (!map || !markerLayer) return;
+  markerLayer.clearLayers();
+  var zoom = map.getZoom();
+
+  if (zoom >= 14){
+    state.toilets.forEach(function(t){ addToiletMarker(t); });
+    return;
+  }
+
+  // grid clustering in screen space
+  var cells = {};
+  state.toilets.forEach(function(t){
+    var p = map.project([t.lat, t.lng], zoom);
+    var key = Math.floor(p.x/70) + ':' + Math.floor(p.y/70);
+    (cells[key] = cells[key] || []).push(t);
+  });
+  Object.keys(cells).forEach(function(k){
+    var group = cells[k];
+    if (group.length === 1){ addToiletMarker(group[0]); return; }
+    var lat = group.reduce(function(s,t){ return s + t.lat; }, 0) / group.length;
+    var lng = group.reduce(function(s,t){ return s + t.lng; }, 0) / group.length;
+    L.marker([lat,lng], { icon: clusterIcon(group.length) })
+      .on('click', function(){ map.setView([lat,lng], Math.min(zoom + 3, 17)); })
+      .addTo(markerLayer);
+  });
+}
+
+function addToiletMarker(t){
+  var d = fmtDistance(distanceTo(t));
+  var html =
+    '<div class="popup">' +
+      '<h4>' + esc(t.name) + '</h4>' +
+      '<p>📍 ' + esc(t.area) + (d ? ' · ' + d : '') + '<br>' +
+      '★ ' + t.rating.toFixed(1) + ' · ' + (t.open ? 'चालू' : 'बंद') + ' · ' + typeLabel(t) + '</p>' +
+      '<button onclick="navigateToId(\'' + t.id + '\')">🧭 मार्ग दाखवा</button>' +
+    '</div>';
+  L.marker([t.lat, t.lng], { icon: toiletIcon(t) }).bindPopup(html).addTo(markerLayer);
+}
+window.navigateToId = function(id){
+  var t = state.toilets.filter(function(x){ return x.id === id; })[0];
+  if (t) navigateTo(t);
+};
+
+function updateMeMarker(){
+  if (!map || !state.pos) return;
+  if (!meMarker){
+    meMarker = L.marker(state.pos, {
+      icon: L.divIcon({ className:'', html:'<div class="me-dot" style="width:16px;height:16px"></div>', iconSize:[16,16], iconAnchor:[8,8] }),
+      zIndexOffset: 1000
+    }).bindPopup('<div class="popup"><h4>तुमचे स्थान</h4></div>').addTo(map);
+    meCircle = L.circle(state.pos, { radius: state.accuracy || 40, color:'#2563eb', weight:1, fillOpacity:.1 }).addTo(map);
+    map.setView(state.pos, 15);
+  } else {
+    meMarker.setLatLng(state.pos);
+    meCircle.setLatLng(state.pos).setRadius(state.accuracy || 40);
+  }
+}
+
+/* =====================================================================
+   Complaint — voice (mr-IN) + photo + notifications
+   ===================================================================== */
+function fillToiletSelect(){
+  var sel = $('#cToilet');
+  sel.innerHTML = state.toilets.map(function(t){
+    return '<option value="' + t.id + '">' + esc(t.name) + ' — ' + esc(t.area) + '</option>';
+  }).join('');
+}
+
+/* --- Voice --- */
+var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+var recog = null, listening = false;
+if (!SR){
+  $('#micHint').textContent = 'या ब्राउझरमध्ये व्हॉइस सुविधा नाही — कृपया टाइप करा. (Chrome वापरा)';
+  $('#micBtn').disabled = true;
+  $('#micBtn').style.opacity = '.5';
+} else {
+  recog = new SR();
+  recog.lang = 'mr-IN';
+  recog.interimResults = true;
+  recog.continuous = false;
+
+  var baseText = '';
+  recog.onstart = function(){
+    listening = true;
+    baseText = $('#cText').value ? $('#cText').value.trim() + ' ' : '';
+    $('#micBtn').classList.add('rec');
+    $('#micHint').textContent = '🔴 ऐकत आहे… मराठीत बोला';
+  };
+  recog.onresult = function(e){
+    var text = '';
+    for (var i = e.resultIndex; i < e.results.length; i++) text += e.results[i][0].transcript;
+    $('#cText').value = baseText + text;
+  };
+  recog.onerror = function(e){
+    listening = false;
+    $('#micBtn').classList.remove('rec');
+    $('#micHint').textContent = e.error === 'not-allowed'
+      ? 'माइक परवानगी नाकारली — सेटिंग्जमधून परवानगी द्या.'
+      : 'आवाज ओळखता आला नाही, पुन्हा प्रयत्न करा.';
+  };
+  recog.onend = function(){
+    listening = false;
+    $('#micBtn').classList.remove('rec');
+    if ($('#micHint').textContent.indexOf('ऐकत') !== -1)
+      $('#micHint').textContent = 'मराठी व्हॉइस टायपिंग (mr-IN) उपलब्ध आहे.';
+  };
+  $('#micBtn').addEventListener('click', function(){
+    if (listening){ recog.stop(); return; }
+    try { recog.start(); } catch(err){ /* already started */ }
+  });
+}
+
+/* --- Photo (compressed so localStorage survives) --- */
+$('#cPhoto').addEventListener('change', function(e){
+  var file = e.target.files && e.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    var img = new Image();
+    img.onload = function(){
+      /* Firestore ची एका नोंदीची मर्यादा 1 MiB आहे — सुरक्षित अंतर ठेवून
+         फोटो लहान होईपर्यंत आकार व दर्जा कमी करत जा */
+      var LIMIT = 600000;
+      var width = 900, quality = 0.6, data = null;
+
+      for (var step = 0; step < 6; step++){
+        var scale = Math.min(1, width / Math.max(img.width, img.height));
+        var c = document.createElement('canvas');
+        c.width = Math.round(img.width * scale);
+        c.height = Math.round(img.height * scale);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        data = c.toDataURL('image/jpeg', quality);
+        if (data.length <= LIMIT) break;
+        if (quality > 0.4) quality -= 0.1; else { width = Math.round(width * 0.8); quality = 0.55; }
+      }
+
+      if (!data || data.length > LIMIT){
+        toast('फोटो खूप मोठा आहे — दुसरा फोटो निवडा');
+        return;
+      }
+      state.photo = data;
+      $('#photoImg').src = state.photo;
+      $('#photoPreview').style.display = 'block';
+      toast('फोटो जोडला गेला');
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+$('#photoRemove').addEventListener('click', function(){
+  state.photo = null;
+  $('#cPhoto').value = '';
+  $('#photoPreview').style.display = 'none';
+});
+
+/* --- Notifications --- */
+function askNotifications(){
+  if (!('Notification' in window)) return Promise.resolve('unsupported');
+  if (Notification.permission === 'granted' || Notification.permission === 'denied')
+    return Promise.resolve(Notification.permission);
+  return Notification.requestPermission();
+}
+function notify(title, body){
+  if (!('Notification' in window) || Notification.permission !== 'granted'){
+    toast(title + ' — ' + body);
+    return;
+  }
+  var opts = { body: body, icon: 'icon.svg', badge: 'icon.svg', tag: 'toilet-seva', lang: 'mr' };
+  if (navigator.serviceWorker && navigator.serviceWorker.ready){
+    navigator.serviceWorker.ready.then(function(reg){
+      if (reg && reg.showNotification) reg.showNotification(title, opts);
+      else new Notification(title, opts);
+    }).catch(function(){ new Notification(title, opts); });
+  } else {
+    new Notification(title, opts);
+  }
+}
+
+/* --- Submit --- */
+$('#submitComplaint').addEventListener('click', function(){
+  var toiletId = $('#cToilet').value;
+  var t = state.toilets.filter(function(x){ return x.id === toiletId; })[0];
+  var text = $('#cText').value.trim();
+
+  if (!t){ toast('कृपया टॉयलेट निवडा'); return; }
+  if (!text){ toast('कृपया तक्रारीचा तपशील लिहा किंवा बोला'); $('#cText').focus(); return; }
+
+  var record = {
+    toiletId: t.id,
+    toiletName: t.name,
+    area: t.area,
+    type: $('#cType').value,
+    text: text,
+    photo: state.photo || null,
+    status: 'open',
+    deviceId: DEVICE_ID,
+    createdAt: Date.now(),
+    resolvedAt: null
+  };
+
+  /* स्थानिक नोंद — क्लाउड नसतानाही तक्रार टिकते */
+  var localRecord = JSON.parse(JSON.stringify(record));
+  localRecord.id = 'c' + Date.now();
+  state.complaints.unshift(localRecord);
+  save(LS.complaints, state.complaints);
+
+  // reset form
+  $('#cText').value = '';
+  state.photo = null;
+  $('#cPhoto').value = '';
+  $('#photoPreview').style.display = 'none';
+
+  addPoints(PTS.complaint, 'तक्रार नोंदवली गेली!');
+  renderAdmin();
+
+  askNotifications().then(function(p){
+    if (p === 'granted') notify('तक्रार नोंदवली ✅', t.name + ' — महानगरपालिकेकडे पाठवली. सुटल्यावर कळवू.');
+  });
+
+  if (!fb.ok) return;
+
+  fb.db.collection('complaints').add(record).then(function(ref){
+    localRecord.id = ref.id;          // onSnapshot आल्यावर दुबार दिसू नये
+    save(LS.complaints, state.complaints);
+  }).catch(function(err){
+    console.warn('तक्रार साठवता आली नाही:', err);
+    toast('तक्रार उपकरणावर साठवली — इंटरनेट आल्यावर पाठवली जाईल');
+  });
+});
+
+/* =====================================================================
+   Admin
+   ===================================================================== */
+function setAdminUI(){
+  $('#adminLogin').hidden = state.isAdmin;
+  $('#adminPanel').hidden = !state.isAdmin;
+  $('#adminAuthNote').textContent = fb.ok
+    ? 'Firebase Auth ने पडताळणी होते.'
+    : 'क्लाउड उपलब्ध नाही — ऑफलाइन पासवर्ड वापरा.';
+  var who = $('#adminWho');
+  if (who) who.textContent = state.adminUser
+    ? '🔑 ' + state.adminUser + ' · थेट (live) जोडणी'
+    : 'ऑफलाइन मोड — बदल फक्त या उपकरणावर';
+  if (state.isAdmin) renderAdmin();
+}
+function authErrorMessage(code){
+  switch (code){
+    case 'auth/invalid-email':        return 'ईमेल पत्ता चुकीचा आहे';
+    case 'auth/user-not-found':       return 'हा वापरकर्ता आढळला नाही';
+    case 'auth/wrong-password':
+    case 'auth/invalid-credential':   return 'ईमेल किंवा पासवर्ड चुकीचा आहे';
+    case 'auth/too-many-requests':    return 'खूप प्रयत्न झाले — थोड्या वेळाने पुन्हा करा';
+    case 'auth/network-request-failed': return 'नेटवर्क मिळाले नाही';
+    default:                          return 'लॉगिन होऊ शकले नाही';
+  }
+}
+
+$('#adminLoginBtn').addEventListener('click', function(){
+  var email = $('#adminEmail').value.trim();
+  var pass  = $('#adminPass').value;
+
+  /* Firebase उपलब्ध नसल्यास (ऑफलाइन / SDK अडलेला) स्थानिक पडताळणी */
+  if (!fb.ok){
+    if (pass === ADMIN_PASSWORD){
+      state.isAdmin = true;
+      save(LS.admin, true);
+      $('#adminPass').value = '';
+      setAdminUI();
+      toast('ऑफलाइन प्रशासन मोड 🛡️');
+    } else {
+      toast('चुकीचा पासवर्ड');
+    }
+    return;
+  }
+
+  if (!email || !pass){ toast('ईमेल व पासवर्ड भरा'); return; }
+
+  var btn = $('#adminLoginBtn');
+  btn.disabled = true;
+  btn.textContent = 'तपासत आहे…';
+
+  fb.auth.signInWithEmailAndPassword(email, pass).then(function(){
+    $('#adminPass').value = '';
+    toast('स्वागत आहे, अधिकारी 🛡️');
+  }).catch(function(err){
+    toast(authErrorMessage(err && err.code));
+    console.warn('Auth:', err && err.code, err && err.message);
+  }).then(function(){
+    btn.disabled = false;
+    btn.textContent = 'लॉगिन करा';
+  });
+});
+$('#adminPass').addEventListener('keydown', function(e){ if (e.key === 'Enter') $('#adminLoginBtn').click(); });
+
+$('#adminLogout').addEventListener('click', function(){
+  if (fb.ok && fb.auth.currentUser){
+    fb.auth.signOut().then(function(){ toast('बाहेर पडलात'); });
+    return;
+  }
+  state.isAdmin = false; save(LS.admin, false); setAdminUI();
+});
+
+$('.tabs').addEventListener('click', function(e){
+  var b = e.target.closest('button[data-tab]');
+  if (!b) return;
+  state.adminTab = b.dataset.tab;
+  $all('.tabs button').forEach(function(x){ x.setAttribute('aria-selected', String(x === b)); });
+  ['complaints','toilets','add'].forEach(function(t){
+    $('#tab-' + t).hidden = (t !== state.adminTab);
+  });
+});
+
+function isToday(ts){
+  if (!ts) return false;
+  var d = new Date(ts), n = new Date();
+  return d.getFullYear() === n.getFullYear() && d.getMonth() === n.getMonth() && d.getDate() === n.getDate();
+}
+function fmtTime(ts){
+  var d = new Date(ts);
+  return d.toLocaleDateString('mr-IN') + ' · ' + d.toLocaleTimeString('mr-IN', { hour:'2-digit', minute:'2-digit' });
+}
+
+function renderAdmin(){
+  if (!state.isAdmin) return;
+  var open = state.complaints.filter(function(c){ return c.status === 'open'; });
+  var avg = state.toilets.length
+    ? state.toilets.reduce(function(s,t){ return s + t.rating; }, 0) / state.toilets.length : 0;
+  var resolvedToday = state.complaints.filter(function(c){ return c.status === 'resolved' && isToday(c.resolvedAt); });
+
+  $('#stTotal').textContent = state.toilets.length;
+  $('#stOpen').textContent = open.length;
+  $('#stRating').textContent = avg.toFixed(1);
+  $('#stResolved').textContent = resolvedToday.length;
+
+  /* top complaint types chart */
+  var counts = {};
+  state.complaints.forEach(function(c){ counts[c.type] = (counts[c.type] || 0) + 1; });
+  var rows = Object.keys(counts).map(function(k){ return [k, counts[k]]; })
+                   .sort(function(a,b){ return b[1] - a[1]; }).slice(0, 5);
+  var maxN = rows.length ? rows[0][1] : 1;
+  $('#chartBars').innerHTML = rows.length
+    ? rows.map(function(r){
+        return '<div class="bar-row"><span class="lbl">' + esc(r[0]) + '</span>' +
+               '<span class="bar-track"><span class="bar-fill" style="width:' + Math.round(r[1]/maxN*100) + '%"></span></span>' +
+               '<span class="val">' + r[1] + '</span></div>';
+      }).join('')
+    : '<p class="hint">अद्याप तक्रारी नाहीत.</p>';
+
+  /* complaints tab */
+  $('#tab-complaints').innerHTML = state.complaints.length
+    ? state.complaints.map(function(c){
+        return '<div class="cmp">' +
+          '<div class="cmp-head"><strong>' + esc(c.toiletName) + '</strong>' +
+            '<span class="tag ' + c.status + '">' + (c.status === 'open' ? 'प्रलंबित' : 'सोडवली') + '</span></div>' +
+          '<p><b>' + esc(c.type) + '</b></p>' +
+          '<p>' + esc(c.text) + '</p>' +
+          (c.photo ? '<img src="' + c.photo + '" alt="तक्रारीचा फोटो">' : '') +
+          '<p class="when">🕒 ' + fmtTime(c.createdAt) + '</p>' +
+          (c.status === 'open'
+            ? '<button class="btn" style="margin-top:9px;padding:10px" data-resolve="' + c.id + '">सोडवली म्हणून चिन्हांकित करा</button>'
+            : '<p class="when">✅ ' + fmtTime(c.resolvedAt) + ' रोजी सोडवली</p>') +
+        '</div>';
+      }).join('')
+    : '<div class="empty"><div class="big">✅</div><p>एकही तक्रार प्रलंबित नाही.</p></div>';
+
+  /* toilets tab */
+  $('#tab-toilets').innerHTML = state.toilets.map(function(t){
+    return '<div class="admin-row">' +
+      '<div class="info"><b>' + esc(t.name) + '</b><span>' + esc(t.area) + ' · ★ ' + t.rating.toFixed(1) + '</span></div>' +
+      '<button class="toggle" data-toggle="' + t.id + '" style="color:' + (t.open ? 'var(--ok)' : 'var(--danger)') + '">' +
+        (t.open ? 'चालू' : 'बंद') + '</button>' +
+      '<button class="toggle" data-del="' + t.id + '" style="color:var(--danger)">काढा</button>' +
+    '</div>';
+  }).join('');
+}
+
+$('#tab-complaints').addEventListener('click', function(e){
+  var b = e.target.closest('button[data-resolve]');
+  if (!b) return;
+  var c = state.complaints.filter(function(x){ return x.id === b.dataset.resolve; })[0];
+  if (!c) return;
+  c.status = 'resolved';
+  c.resolvedAt = Date.now();
+  save(LS.complaints, state.complaints);
+  addPoints(PTS.resolved, 'तक्रार सोडवली गेली!');
+  notify('तुमची तक्रार सोडवली गेली ✅', c.toiletName + ' — ' + c.type + '. तुम्हाला +' + PTS.resolved + ' गुण मिळाले!');
+  renderAdmin();
+
+  if (!fb.ok) return;
+  fb.db.collection('complaints').doc(c.id).update({
+    status: 'resolved',
+    resolvedAt: Date.now(),
+    resolvedBy: state.adminUser || 'admin'
+  }).catch(function(err){
+    console.warn('तक्रार अद्ययावत करता आली नाही:', err);
+    toast('स्थिती क्लाउडवर बदलली नाही');
+  });
+});
+
+$('#tab-toilets').addEventListener('click', function(e){
+  var tg = e.target.closest('button[data-toggle]');
+  var dl = e.target.closest('button[data-del]');
+  if (tg){
+    var t = state.toilets.filter(function(x){ return x.id === tg.dataset.toggle; })[0];
+    if (t){
+      t.open = !t.open;
+      save(LS.toilets, state.toilets);
+      renderAdmin(); renderCards(); refreshMarkers();
+      toast(t.name + ' आता ' + (t.open ? 'चालू' : 'बंद'));
+      if (fb.ok){
+        fb.db.collection('toilets').doc(t.id).update({ open: t.open })
+          .catch(function(err){ console.warn('स्थिती बदलली नाही:', err); toast('क्लाउडवर बदल पोहोचला नाही'); });
+      }
+    }
+  }
+  if (dl){
+    var id = dl.dataset.del;
+    var target = state.toilets.filter(function(x){ return x.id === id; })[0];
+    if (target && confirm('"' + target.name + '" यादीतून काढायचे?')){
+      state.toilets = state.toilets.filter(function(x){ return x.id !== id; });
+      save(LS.toilets, state.toilets);
+      renderAdmin(); renderCards(); refreshMarkers(); fillToiletSelect();
+      toast('टॉयलेट काढले');
+      if (fb.ok){
+        fb.db.collection('toilets').doc(id).delete()
+          .catch(function(err){ console.warn('काढता आले नाही:', err); toast('क्लाउडवरून काढता आले नाही'); });
+      }
+    }
+  }
+});
+
+$('#useMyLoc').addEventListener('click', function(){
+  if (!state.pos){ toast('स्थान अद्याप मिळालेले नाही'); return; }
+  $('#nLat').value = state.pos[0].toFixed(6);
+  $('#nLng').value = state.pos[1].toFixed(6);
+  toast('सध्याचे स्थान भरले');
+});
+
+$('#addToilet').addEventListener('click', function(){
+  var name = $('#nName').value.trim();
+  var area = $('#nArea').value.trim();
+  var lat = parseFloat($('#nLat').value);
+  var lng = parseFloat($('#nLng').value);
+  if (!name || !area){ toast('नाव आणि परिसर आवश्यक आहे'); return; }
+  if (isNaN(lat) || isNaN(lng)){ toast('अक्षांश / रेखांश योग्य भरा'); return; }
+
+  var doc = {
+    name: name, area: area, lat: lat, lng: lng,
+    type: $('#nType').value,
+    divyang: $('#nDivyang').checked,
+    open: true, rating: 0, votes: 0, timing: 'सकाळी 6 – रात्री 10',
+    facilities: $('#nFac').value.split(',').map(function(s){ return s.trim(); }).filter(Boolean),
+    createdAt: Date.now()
+  };
+
+  ['#nName','#nArea','#nLat','#nLng','#nFac'].forEach(function(s){ $(s).value = ''; });
+  $('#nDivyang').checked = false;
+
+  if (fb.ok){
+    /* onSnapshot नवीन नोंद आपोआप यादीत आणेल */
+    fb.db.collection('toilets').add(doc).then(function(){
+      toast('नवीन टॉयलेट जोडले ✅');
+    }).catch(function(err){
+      console.warn('टॉयलेट जोडता आले नाही:', err);
+      toast('क्लाउडवर जोडता आले नाही');
+    });
+    return;
+  }
+
+  var local = JSON.parse(JSON.stringify(doc));
+  local.id = 't' + Date.now();
+  state.toilets.push(local);
+  save(LS.toilets, state.toilets);
+  renderCards(); renderAdmin(); refreshMarkers(); fillToiletSelect();
+  toast('नवीन टॉयलेट जोडले ✅');
+});
+
+/* =====================================================================
+   Navigation
+   ===================================================================== */
+var SCREENS = ['list','map','complaint','admin'];
+
+function showScreen(name, skipHash){
+  if (SCREENS.indexOf(name) === -1) name = 'list';
+  state.screen = name;
+  $all('.screen').forEach(function(s){ s.classList.toggle('active', s.id === 'screen-' + name); });
+  $all('.nav button').forEach(function(b){ b.setAttribute('aria-current', String(b.dataset.screen === name)); });
+  window.scrollTo(0, 0);
+  if (!skipHash && location.hash.slice(1) !== name){
+    history.replaceState(null, '', '#' + name);
+  }
+  if (name === 'map'){
+    initMap();
+    setTimeout(function(){ if (map) { map.invalidateSize(); refreshMarkers(); } }, 90);
+  }
+  if (name === 'admin') setAdminUI();
+}
+$('.nav').addEventListener('click', function(e){
+  var b = e.target.closest('button[data-screen]');
+  if (b) showScreen(b.dataset.screen);
+});
+/* manifest shortcuts (#map, #complaint …) व मागील बटण */
+window.addEventListener('hashchange', function(){
+  showScreen(location.hash.slice(1), true);
+});
+
+/* =====================================================================
+   Boot
+   ===================================================================== */
+applyTheme();
+renderPoints(false);
+renderCards();
+fillToiletSelect();
+$('#adminEmail').value = ADMIN_EMAIL;
+setAdminUI();
+initFirebase();
+startTracking();
+if (location.hash) showScreen(location.hash.slice(1), true);
+
+if ('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('service-worker.js').catch(function(err){
+      console.warn('Service worker नोंदणी अयशस्वी:', err);
+    });
+  });
+}
+</script>
+</body>
+</html>

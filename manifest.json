@@ -1,0 +1,51 @@
+{
+  "name": "टॉयलेट सेवा — अहिल्यानगर महानगरपालिका",
+  "short_name": "टॉयलेट सेवा",
+  "description": "जवळचे स्वच्छ सार्वजनिक शौचालय शोधा, थेट GPS ने मार्ग मिळवा, मानांकन द्या आणि तक्रार नोंदवा. अहिल्यानगर महानगरपालिकेची अधिकृत नागरिक सेवा.",
+  "lang": "mr",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "id": "/toilet-seva/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "orientation": "portrait-primary",
+  "background_color": "#f2f5f7",
+  "theme_color": "#0e7c5a",
+  "categories": ["utilities", "travel", "government", "navigation"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "जवळचे टॉयलेट",
+      "short_name": "यादी",
+      "description": "जवळच्या क्रमाने टॉयलेटची यादी",
+      "url": "./#list"
+    },
+    {
+      "name": "नकाशा",
+      "short_name": "नकाशा",
+      "description": "नकाशावर टॉयलेट पहा",
+      "url": "./#map"
+    },
+    {
+      "name": "तक्रार नोंदवा",
+      "short_name": "तक्रार",
+      "description": "फोटो व आवाजासह तक्रार नोंदवा",
+      "url": "./#complaint"
+    }
+  ]
+}

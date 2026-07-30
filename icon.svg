@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="टॉयलेट सेवा">
+  <title>टॉयलेट सेवा — अहिल्यानगर महानगरपालिका</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#12946b"/>
+      <stop offset="1" stop-color="#0a5f45"/>
+    </linearGradient>
+    <linearGradient id="pin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#e8f4ef"/>
+    </linearGradient>
+    <filter id="sh" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#04241a" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- पार्श्वभूमी (maskable safe zone: मध्यभागी 80%) -->
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <circle cx="256" cy="242" r="196" fill="#ffffff" opacity="0.06"/>
+
+  <!-- स्थान पिन -->
+  <path filter="url(#sh)" fill="url(#pin)"
+        d="M256 92c-63 0-114 51-114 114 0 82 100 176 111 186a4.5 4.5 0 0 0 6 0c11-10 111-104 111-186 0-63-51-114-114-114z"/>
+
+  <!-- पिनमधील स्त्री-पुरुष चिन्ह (शौचालय) -->
+  <g fill="#0a5f45">
+    <!-- पुरुष -->
+    <circle cx="216" cy="163" r="19"/>
+    <path d="M216 190c-19 0-30 10-30 27v50a10 10 0 0 0 20 0v-38h4v83a11 11 0 0 0 22 0v-83h4v38a10 10 0 0 0 20 0v-50c0-17-11-27-30-27z" transform="translate(-6 0)"/>
+    <!-- महिला -->
+    <circle cx="300" cy="163" r="19"/>
+    <path d="M300 189c-18 0-27 9-32 26l-14 46a9.5 9.5 0 0 0 18 6l9-29 4 2-14 45h20v40a10 10 0 0 0 20 0v-40h6v40a10 10 0 0 0 20 0v-40h14l-14-45 4-2 9 29a9.5 9.5 0 0 0 18-6l-14-46c-5-17-14-26-32-26z" transform="translate(-6 0)"/>
+  </g>
+
+  <!-- थेट GPS ठिपका -->
+  <circle cx="256" cy="404" r="26" fill="#25c08a" opacity="0.28"/>
+  <circle cx="256" cy="404" r="13" fill="#25c08a" stroke="#ffffff" stroke-width="5"/>
+</svg>
