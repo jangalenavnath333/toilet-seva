@@ -214,17 +214,43 @@ a{color:var(--brand)}
 .mic.rec{background:var(--danger);color:#fff;border-color:var(--danger);animation:rec 1.1s infinite}
 @keyframes rec{50%{opacity:.55}}
 
-.photo-drop{
-  border:2px dashed var(--line);border-radius:14px;padding:22px;text-align:center;
-  color:var(--muted);background:var(--card);
+/* ============ Complaint type checkboxes ============ */
+.ctype-grid{
+  display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;
 }
-.photo-drop .big{font-size:32px}
-.photo-preview{position:relative;margin-top:10px;display:none}
-.photo-preview img{width:100%;border-radius:14px;display:block;max-height:260px;object-fit:cover}
-.photo-preview button{
-  position:absolute;top:8px;right:8px;background:rgba(0,0,0,.65);color:#fff;
-  width:32px;height:32px;border-radius:50%;font-size:16px
+.ctype-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 12px;border-radius:20px;font-size:13px;font-weight:600;
+  background:var(--bg-soft);border:2px solid var(--line);
+  cursor:pointer;transition:all .15s;user-select:none;
 }
+.ctype-chip input{display:none}
+.ctype-chip.active{
+  background:var(--brand-soft);border-color:var(--brand);color:var(--brand);
+}
+
+/* ============ Multi-photo grid ============ */
+.photo-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;
+}
+.photo-add-btn{
+  aspect-ratio:1;border:2px dashed var(--line);border-radius:14px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--muted);background:var(--card);transition:.15s;
+}
+.photo-add-btn:hover{border-color:var(--brand);color:var(--brand)}
+.photo-thumb{
+  position:relative;aspect-ratio:1;border-radius:14px;overflow:hidden;
+}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.photo-thumb button{
+  position:absolute;top:4px;right:4px;background:rgba(0,0,0,.65);color:#fff;
+  width:24px;height:24px;border-radius:50%;font-size:13px;line-height:24px;text-align:center;
+}
+
+/* old single-photo compat (hidden) */
+.photo-drop{display:none}
+.photo-preview{display:none}
 
 /* ============ Admin ============ */
 .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
@@ -395,8 +421,19 @@ a{color:var(--brand)}
   </div>
 
   <div class="field">
-    <label for="cType" data-i18n="comp.type">तक्रारीचा प्रकार</label>
-    <select id="cType"></select>
+    <label data-i18n="comp.type">तक्रारीचा प्रकार <span style="font-size:12px;font-weight:500;color:var(--muted)">(एक किंवा अनेक निवडा)</span></label>
+    <div class="ctype-grid" id="cTypeGrid"></div>
+  </div>
+
+  <div class="field">
+    <label for="cWait">⏱️ प्रतीक्षेचा वेळ <span style="font-size:12px;font-weight:500;color:var(--muted)">(ऐच्छिक)</span></label>
+    <select id="cWait" style="margin-top:6px">
+      <option value="">— निवडा —</option>
+      <option value="5 मिनिटांपेक्षा कमी">5 मिनिटांपेक्षा कमी</option>
+      <option value="5–10 मिनिटे">5–10 मिनिटे</option>
+      <option value="10–20 मिनिटे">10–20 मिनिटे</option>
+      <option value="20 मिनिटांपेक्षा जास्त">20 मिनिटांपेक्षा जास्त</option>
+    </select>
   </div>
 
   <div class="field">
@@ -409,17 +446,15 @@ a{color:var(--brand)}
   </div>
 
   <div class="field">
-    <label><span data-i18n="comp.photo">फोटो जोडा</span> <span style="font-weight:500;color:var(--muted)" data-i18n="comp.optional">(ऐच्छिक)</span></label>
-    <label class="photo-drop" for="cPhoto">
-      <div class="big">📸</div>
-      <div style="font-weight:700;color:var(--text)" data-i18n="comp.photoCta">कॅमेरा उघडा किंवा फोटो निवडा</div>
-      <div style="font-size:12px" data-i18n="comp.photoHint">पुरावा असल्यास तक्रार लवकर सुटते</div>
-    </label>
-    <input id="cPhoto" type="file" accept="image/*" capture="environment" hidden>
-    <div class="photo-preview" id="photoPreview">
-      <img id="photoImg" alt="">
-      <button type="button" id="photoRemove" data-i18n-aria="comp.photoRemove" aria-label="फोटो काढा">✕</button>
+    <label><span data-i18n="comp.photo">फोटो जोडा</span> <span style="font-weight:500;color:var(--muted)">(जास्तीत जास्त 3)</span></label>
+    <div id="photoGrid" class="photo-grid">
+      <label class="photo-add-btn" for="cPhoto">
+        <div style="font-size:28px">📸</div>
+        <div style="font-size:12px;margin-top:4px" data-i18n="comp.photoCta">फोटो जोडा</div>
+      </label>
     </div>
+    <input id="cPhoto" type="file" accept="image/*" multiple hidden>
+    <p class="hint" style="margin-top:6px" data-i18n="comp.photoHint">पुरावा असल्यास तक्रार लवकर सुटते</p>
   </div>
 
   <button class="btn" id="submitComplaint" data-i18n="comp.submit">तक्रार पाठवा</button>
@@ -635,6 +670,7 @@ mr: {
   'comp.savedLocal':'तक्रार उपकरणावर साठवली — इंटरनेट आल्यावर पाठवली जाईल',
   'ctype.clean':'स्वच्छता नाही', 'ctype.water':'पाणी नाही', 'ctype.power':'वीज / दिवे नाहीत',
   'ctype.door':'दरवाजा / कुलूप तुटले', 'ctype.smell':'दुर्गंधी', 'ctype.closed':'बंद आहे',
+  'ctype.wait':'प्रतीक्षा वेळ जास्त', 'ctype.nofac':'सुविधा नाहीत', 'ctype.suggest':'सुचवणे / अभिप्राय',
   'ctype.other':'इतर',
 
   'qr.selected':'शौचालय निवडले: {name}', 'qr.via':'{area} · QR कोड स्कॅन करून निवडले गेले',
@@ -765,6 +801,7 @@ en: {
   'comp.savedLocal':'Complaint saved on your device — it will be sent once you are online',
   'ctype.clean':'Not clean', 'ctype.water':'No water', 'ctype.power':'No electricity / lights',
   'ctype.door':'Door / lock broken', 'ctype.smell':'Bad smell', 'ctype.closed':'It is closed',
+  'ctype.wait':'Long wait time', 'ctype.nofac':'No facilities', 'ctype.suggest':'Suggestion / Feedback',
   'ctype.other':'Other',
 
   'qr.selected':'Toilet selected: {name}', 'qr.via':'{area} · selected by scanning a QR code',
@@ -840,13 +877,16 @@ en: {
 /* तक्रारीचे प्रकार — मूल्य नेहमी मराठीत साठवले जाते (जुन्या नोंदी जुळाव्यात),
    फक्त दिसणारा मजकूर भाषेनुसार बदलतो */
 var COMPLAINT_TYPES = [
-  { value:'स्वच्छता नाही',        key:'ctype.clean'  },
-  { value:'पाणी नाही',            key:'ctype.water'  },
-  { value:'वीज / दिवे नाहीत',     key:'ctype.power'  },
-  { value:'दरवाजा / कुलूप तुटले', key:'ctype.door'   },
-  { value:'दुर्गंधी',              key:'ctype.smell'  },
-  { value:'बंद आहे',              key:'ctype.closed' },
-  { value:'इतर',                  key:'ctype.other'  }
+  { value:'स्वच्छता नाही',        key:'ctype.clean',   emoji:'🧹' },
+  { value:'पाणी नाही',            key:'ctype.water',   emoji:'💧' },
+  { value:'वीज / दिवे नाहीत',     key:'ctype.power',   emoji:'💡' },
+  { value:'दरवाजा / कुलूप तुटले', key:'ctype.door',    emoji:'🚪' },
+  { value:'दुर्गंधी',              key:'ctype.smell',   emoji:'😷' },
+  { value:'बंद आहे',              key:'ctype.closed',  emoji:'🔒' },
+  { value:'प्रतीक्षा वेळ जास्त',  key:'ctype.wait',    emoji:'⏳' },
+  { value:'सुविधा नाहीत',         key:'ctype.nofac',   emoji:'🚫' },
+  { value:'सुचवणे / अभिप्राय',    key:'ctype.suggest', emoji:'💬' },
+  { value:'इतर',                  key:'ctype.other',   emoji:'📝' }
 ];
 
 /* बीज-माहितीतील सुविधा व वेळ — ओळखीचे शब्द इंग्रजीत दाखवा,
@@ -950,34 +990,34 @@ function applyLanguage(){
 /* ---------- 10 नमुना टॉयलेट (अहिल्यानगर) ---------- */
 var SEED_TOILETS = [
   { id:'t1', name:'सुलभ शौचालय, तारकपूर बस स्थानक', englishName:'Sulabh Toilet, Tarakpur Bus Stand', area:'तारकपूर', englishArea:'Tarakpur', lat:19.0862, lng:74.7386,
-    type:'both', divyang:true, open:true, rating:4.3, votes:52, timing:'सकाळी 5 – रात्री 11',
+    type:'both', divyang:true, open:true, rating:4.3, votes:52, timing:'24 तास',
     facilities:['पाणी','वीज','सॅनिटरी पॅड','दिव्यांग रॅम्प'] },
   { id:'t2', name:'सार्वजनिक शौचालय, मार्केट यार्ड', englishName:'Public Toilet, Market Yard', area:'नागापूर', englishArea:'Nagapur', lat:19.0701, lng:74.7182,
-    type:'both', divyang:false, open:true, rating:3.6, votes:31, timing:'सकाळी 6 – रात्री 10',
+    type:'both', divyang:false, open:true, rating:3.6, votes:31, timing:'24 तास',
     facilities:['पाणी','वीज'] },
   { id:'t3', name:'रेल्वे स्थानक शौचालय', englishName:'Railway Station Toilet', area:'रेल्वे स्टेशन रोड', englishArea:'Railway Station Road', lat:19.0817, lng:74.7215,
     type:'both', divyang:true, open:true, rating:4.0, votes:74, timing:'24 तास',
     facilities:['पाणी','वीज','दिव्यांग रॅम्प','स्वच्छता कर्मचारी'] },
   { id:'t4', name:'महिला स्वच्छतागृह, दिल्ली गेट', englishName:"Women's Toilet, Delhi Gate", area:'दिल्ली गेट', englishArea:'Delhi Gate', lat:19.0946, lng:74.7452,
-    type:'ladies', divyang:true, open:true, rating:4.6, votes:47, timing:'सकाळी 6 – रात्री 9',
+    type:'ladies', divyang:true, open:true, rating:4.6, votes:47, timing:'24 तास',
     facilities:['पाणी','वीज','सॅनिटरी पॅड','हिरकणी कक्ष'] },
   { id:'t5', name:'सार्वजनिक शौचालय, चितळे रोड', englishName:'Public Toilet, Chitale Road', area:'चितळे रोड', englishArea:'Chitale Road', lat:19.0938, lng:74.7401,
-    type:'both', divyang:false, open:false, rating:2.8, votes:23, timing:'सकाळी 7 – रात्री 8',
+    type:'both', divyang:false, open:false, rating:2.8, votes:23, timing:'24 तास',
     facilities:['पाणी'] },
   { id:'t6', name:'वाडिया पार्क शौचालय', englishName:'Wadia Park Toilet', area:'वाडिया पार्क', englishArea:'Wadia Park', lat:19.0975, lng:74.7368,
-    type:'both', divyang:true, open:true, rating:4.4, votes:66, timing:'सकाळी 5 – रात्री 10',
+    type:'both', divyang:true, open:true, rating:4.4, votes:66, timing:'24 तास',
     facilities:['पाणी','वीज','दिव्यांग रॅम्प','बेबी केअर'] },
   { id:'t7', name:'सुलभ शौचालय, सावेडी नाका', englishName:'Sulabh Toilet, Savedi Naka', area:'सावेडी', englishArea:'Savedi', lat:19.1092, lng:74.7395,
-    type:'both', divyang:false, open:true, rating:3.9, votes:38, timing:'सकाळी 6 – रात्री 10',
+    type:'both', divyang:false, open:true, rating:3.9, votes:38, timing:'24 तास',
     facilities:['पाणी','वीज'] },
   { id:'t8', name:'भिंगार बाजारपेठ शौचालय', englishName:'Bhingar Market Toilet', area:'भिंगार', englishArea:'Bhingar', lat:19.1512, lng:74.7825,
-    type:'both', divyang:false, open:true, rating:3.2, votes:19, timing:'सकाळी 6 – रात्री 9',
+    type:'both', divyang:false, open:true, rating:3.2, votes:19, timing:'24 तास',
     facilities:['पाणी'] },
   { id:'t9', name:'किल्ला परिसर शौचालय', englishName:'Fort Area Toilet', area:'अहमदनगर किल्ला', englishArea:'Ahmednagar Fort', lat:19.0983, lng:74.7588,
-    type:'both', divyang:true, open:true, rating:4.1, votes:29, timing:'सकाळी 8 – संध्याकाळी 6',
+    type:'both', divyang:true, open:true, rating:4.1, votes:29, timing:'24 तास',
     facilities:['पाणी','वीज','दिव्यांग रॅम्प'] },
   { id:'t10', name:'महिला शौचालय, केडगाव देवी', englishName:"Women's Toilet, Kedgaon Devi", area:'केडगाव', englishArea:'Kedgaon', lat:19.0602, lng:74.7318,
-    type:'ladies', divyang:false, open:true, rating:3.7, votes:26, timing:'सकाळी 6 – रात्री 9',
+    type:'ladies', divyang:false, open:true, rating:3.7, votes:26, timing:'24 तास',
     facilities:['पाणी','सॅनिटरी पॅड'] }
 ];
 
@@ -994,6 +1034,7 @@ var state = {
   screen: 'list',
   isAdmin: load(LS.admin, false),
   adminUser: '',
+  photos: [],
   adminTab: 'complaints',
   rateTarget: null,
   rateValue: 0,
@@ -1655,19 +1696,40 @@ function fillToiletSelect(){
   applyQrDeepLink();
 }
 
-/* तक्रारीच्या प्रकारांची यादी — मूल्य मराठीच, मजकूर भाषेनुसार */
+/* तक्रारीचे प्रकार — checkboxes */
 function fillComplaintTypes(){
-  var sel = $('#cType');
-  if (!sel) return;
-  var keep = sel.value;
-  sel.innerHTML = COMPLAINT_TYPES.map(function(c){
-    return '<option value="' + esc(c.value) + '">' + esc(T(c.key)) + '</option>';
+  var grid = $('#cTypeGrid');
+  if (!grid) return;
+  grid.innerHTML = COMPLAINT_TYPES.map(function(c){
+    /* always show both Marathi and English label */
+    var mr = (I18N.mr && I18N.mr[c.key]) || c.value;
+    var en = (I18N.en && I18N.en[c.key]) || '';
+    var label = state.lang === 'mr'
+      ? esc(mr) + (en ? '<span style="display:block;font-size:10px;font-weight:400;opacity:.7">' + esc(en) + '</span>' : '')
+      : esc(en) + '<span style="display:block;font-size:10px;font-weight:400;opacity:.7">' + esc(mr) + '</span>';
+    return '<label class="ctype-chip" data-val="' + esc(c.value) + '">' +
+      '<input type="checkbox" value="' + esc(c.value) + '">' +
+      c.emoji + ' ' + label +
+    '</label>';
   }).join('');
-  if (keep) selectToiletValue(sel, keep);
+  /* toggle active class on click */
+  grid.querySelectorAll('.ctype-chip').forEach(function(chip){
+    chip.addEventListener('click', function(){
+      var cb = chip.querySelector('input');
+      chip.classList.toggle('active', cb.checked);
+    });
+  });
 }
 
-/* साठवलेले (मराठी) मूल्य → सध्याच्या भाषेतील मजकूर */
+/* निवडलेले सर्व प्रकार array म्हणून */
+function getSelectedTypes(){
+  var chips = document.querySelectorAll('#cTypeGrid .ctype-chip input:checked');
+  return Array.prototype.map.call(chips, function(cb){ return cb.value; });
+}
+
+/* साठवलेले (मराठी) मूल्य → सध्याच्या भाषेतील मजकूर (string किंवा array दोन्ही handle करतो) */
 function complaintTypeLabel(value){
+  if (Array.isArray(value)) return value.map(complaintTypeLabel).join(', ');
   for (var i = 0; i < COMPLAINT_TYPES.length; i++){
     if (COMPLAINT_TYPES[i].value === value) return T(COMPLAINT_TYPES[i].key);
   }
@@ -1772,19 +1834,14 @@ if (!SR){
   });
 }
 
-/* --- Photo (compressed so localStorage survives) --- */
-$('#cPhoto').addEventListener('change', function(e){
-  var file = e.target.files && e.target.files[0];
-  if (!file) return;
+/* --- Multi-photo (compressed, max 3) --- */
+function compressPhoto(file, cb){
   var reader = new FileReader();
   reader.onload = function(ev){
     var img = new Image();
     img.onload = function(){
-      /* Firestore ची एका नोंदीची मर्यादा 1 MiB आहे — सुरक्षित अंतर ठेवून
-         फोटो लहान होईपर्यंत आकार व दर्जा कमी करत जा */
-      var LIMIT = 600000;
-      var width = 900, quality = 0.6, data = null;
-
+      var LIMIT = 400000; /* 3 photos × ~400KB ≈ 1.2 MB safe for Firestore */
+      var width = 800, quality = 0.6, data = null;
       for (var step = 0; step < 6; step++){
         var scale = Math.min(1, width / Math.max(img.width, img.height));
         var c = document.createElement('canvas');
@@ -1793,27 +1850,62 @@ $('#cPhoto').addEventListener('change', function(e){
         c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
         data = c.toDataURL('image/jpeg', quality);
         if (data.length <= LIMIT) break;
-        if (quality > 0.4) quality -= 0.1; else { width = Math.round(width * 0.8); quality = 0.55; }
+        if (quality > 0.35) quality -= 0.1; else { width = Math.round(width * 0.8); quality = 0.5; }
       }
-
-      if (!data || data.length > LIMIT){
-        toast(T('comp.photoBig'));
-        return;
-      }
-      state.photo = data;
-      $('#photoImg').src = state.photo;
-      $('#photoPreview').style.display = 'block';
-      toast(T('comp.photoAdded'));
+      cb(data && data.length <= LIMIT ? data : null);
     };
     img.src = ev.target.result;
   };
   reader.readAsDataURL(file);
-});
-$('#photoRemove').addEventListener('click', function(){
-  state.photo = null;
+}
+
+function renderPhotoGrid(){
+  var grid = $('#photoGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  state.photos.forEach(function(src, idx){
+    var thumb = document.createElement('div');
+    thumb.className = 'photo-thumb';
+    thumb.innerHTML = '<img src="' + src + '" alt="फोटो ' + (idx+1) + '">' +
+      '<button type="button" data-idx="' + idx + '" aria-label="काढा">✕</button>';
+    grid.appendChild(thumb);
+  });
+  /* add button — only show if < 3 photos */
+  if (state.photos.length < 3){
+    var addBtn = document.createElement('label');
+    addBtn.className = 'photo-add-btn';
+    addBtn.htmlFor = 'cPhoto';
+    addBtn.innerHTML = '<div style="font-size:28px">📸</div><div style="font-size:12px;margin-top:4px">फोटो जोडा</div>';
+    grid.appendChild(addBtn);
+  }
+  /* remove buttons */
+  grid.querySelectorAll('.photo-thumb button').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var i = parseInt(btn.dataset.idx, 10);
+      state.photos.splice(i, 1);
+      renderPhotoGrid();
+    });
+  });
+}
+
+$('#cPhoto').addEventListener('change', function(e){
+  var files = Array.prototype.slice.call(e.target.files || []);
+  var remaining = 3 - state.photos.length;
+  files = files.slice(0, remaining);
+  if (!files.length) return;
+  var pending = files.length;
+  files.forEach(function(file){
+    compressPhoto(file, function(data){
+      if (data) state.photos.push(data);
+      else toast(T('comp.photoBig'));
+      pending--;
+      if (!pending){ renderPhotoGrid(); toast(T('comp.photoAdded')); }
+    });
+  });
   $('#cPhoto').value = '';
-  $('#photoPreview').style.display = 'none';
 });
+
+renderPhotoGrid(); /* initial render */
 
 /* --- Notifications --- */
 function askNotifications(){
@@ -1847,13 +1939,18 @@ $('#submitComplaint').addEventListener('click', function(){
   if (!t){ toast(T('comp.pick')); return; }
   if (!text){ toast(T('comp.needText')); $('#cText').focus(); return; }
 
+  var types = getSelectedTypes();
+  if (!types.length){ toast('किमान एक तक्रारीचा प्रकार निवडा'); return; }
+
   var record = {
     toiletId: t.id,
     toiletName: t.name,
     area: t.area,
-    type: $('#cType').value,
+    type: types,
+    waitTime: $('#cWait').value || null,
     text: text,
-    photo: state.photo || null,
+    photos: state.photos.slice(),
+    photo: state.photos[0] || null, /* backward compat */
     status: 'open',
     deviceId: DEVICE_ID,
     createdAt: Date.now(),
@@ -1868,9 +1965,14 @@ $('#submitComplaint').addEventListener('click', function(){
 
   // reset form
   $('#cText').value = '';
-  state.photo = null;
-  $('#cPhoto').value = '';
-  $('#photoPreview').style.display = 'none';
+  $('#cWait').value = '';
+  state.photos = [];
+  renderPhotoGrid();
+  /* uncheck all type chips */
+  document.querySelectorAll('#cTypeGrid .ctype-chip').forEach(function(chip){
+    chip.classList.remove('active');
+    chip.querySelector('input').checked = false;
+  });
 
   addPoints(PTS.complaint, T('comp.filed'));
   renderAdmin();
@@ -2009,12 +2111,16 @@ function renderAdmin(){
   /* complaints tab */
   $('#tab-complaints').innerHTML = state.complaints.length
     ? state.complaints.map(function(c){
+        var photoList = c.photos && c.photos.length ? c.photos : (c.photo ? [c.photo] : []);
+        var typeLabel = complaintTypeLabel(c.type);
         return '<div class="cmp">' +
           '<div class="cmp-head"><strong>' + esc(c.toiletName) + '</strong>' +
             '<span class="tag ' + c.status + '">' + esc(T(c.status === 'open' ? 'admin.pending' : 'admin.resolved')) + '</span></div>' +
-          '<p><b>' + esc(complaintTypeLabel(c.type)) + '</b></p>' +
+          '<p><b>' + esc(typeLabel) + '</b>' + (c.waitTime ? ' · ⏱️ ' + esc(c.waitTime) : '') + '</p>' +
           '<p>' + esc(c.text) + '</p>' +
-          (c.photo ? '<img src="' + c.photo + '" alt="' + esc(T('admin.photoAlt')) + '">' : '') +
+          (photoList.length ? '<div style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0">' +
+            photoList.map(function(src){ return '<img src="' + src + '" alt="फोटो" style="width:80px;height:80px;object-fit:cover;border-radius:8px">'; }).join('') +
+          '</div>' : '') +
           '<p class="when">🕒 ' + fmtTime(c.createdAt) + '</p>' +
           (c.status === 'open'
             ? '<button class="btn" style="margin-top:9px;padding:10px" data-resolve="' + c.id + '">' + esc(T('admin.markResolved')) + '</button>'
@@ -2118,7 +2224,7 @@ $('#addToilet').addEventListener('click', function(){
     name: name, area: area, lat: lat, lng: lng,
     type: $('#nType').value,
     divyang: $('#nDivyang').checked,
-    open: true, rating: 0, votes: 0, timing: 'सकाळी 6 – रात्री 10',
+    open: true, rating: 0, votes: 0, timing: '24 तास',
     facilities: $('#nFac').value.split(',').map(function(s){ return s.trim(); }).filter(Boolean),
     createdAt: Date.now()
   };
