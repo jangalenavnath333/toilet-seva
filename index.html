@@ -2041,6 +2041,8 @@ $('#submitComplaint').addEventListener('click', function(){
   $('#cText').value = '';
   $('#cWait').value = '';
   state.photos = [];
+  if ($('#cPhotoCamera')) $('#cPhotoCamera').value = '';
+  if ($('#cPhotoGallery')) $('#cPhotoGallery').value = '';
   renderPhotoGrid();
   /* uncheck all type chips */
   document.querySelectorAll('#cTypeGrid .ctype-chip').forEach(function(chip){
