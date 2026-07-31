@@ -978,9 +978,15 @@ function applyLanguage(){
   el.setAttribute('lang', state.lang);
   el.setAttribute('data-lang', state.lang);
 
-  $all('[data-i18n]').forEach(function(n){ n.textContent = T(n.getAttribute('data-i18n')); });
+  /* सर्व data-i18n घटकांना Marathi + English एकत्र दाखवा */
+  $all('[data-i18n]').forEach(function(n){
+    var key = n.getAttribute('data-i18n');
+    /* <option> plain text असतो — HTML render होत नाही */
+    if (n.tagName === 'OPTION'){ n.textContent = T(key); return; }
+    n.innerHTML = TB(key);
+  });
   $all('[data-i18n-html]').forEach(function(n){ n.innerHTML = T(n.getAttribute('data-i18n-html')); });
-  /* द्विभाषी — मराठी + English एकत्र */
+  /* data-i18n-bi (manual override) */
   $all('[data-i18n-bi]').forEach(function(n){ n.innerHTML = TB(n.getAttribute('data-i18n-bi')); });
   $all('[data-i18n-ph]').forEach(function(n){ n.setAttribute('placeholder', T(n.getAttribute('data-i18n-ph'))); });
   $all('[data-i18n-aria]').forEach(function(n){ n.setAttribute('aria-label', T(n.getAttribute('data-i18n-aria'))); });
@@ -1042,6 +1048,20 @@ var SEED_TOILETS = [
     type:'ladies', divyang:false, open:true, rating:3.7, votes:26, timing:'24 तास',
     facilities:['पाणी','सॅनिटरी पॅड'] }
 ];
+
+/* ---------- Data migration: जुने timing → 24 तास ---------- */
+(function migrateTiming(){
+  var stored = load(LS.toilets, null);
+  if (!stored) return;
+  var changed = false;
+  stored.forEach(function(t){
+    if (t.timing && t.timing !== '24 तास'){
+      t.timing = '24 तास';
+      changed = true;
+    }
+  });
+  if (changed) save(LS.toilets, stored);
+})();
 
 /* ---------- State ---------- */
 var state = {
@@ -1152,7 +1172,7 @@ function setSync(kind, key){
   var el = $('#syncBadge');
   if (!el) return;
   el.className = 'sync' + (kind ? ' ' + kind : '');
-  el.textContent = T(key);
+  el.innerHTML = TB(key);
 }
 
 /* GPS पट्टी — मजकूर लक्षात ठेवतो, म्हणजे भाषा बदलल्यावर पुन्हा लिहिता येतो */
@@ -1161,8 +1181,11 @@ function setGps(key, vars, asHtml){
   state.gpsVars = vars || null;
   var el = $('#gpsText');
   if (!el) return;
-  if (asHtml) el.innerHTML = T(key, vars);
-  else el.textContent = T(key, vars);
+  /* GPS text — Marathi + English एकत्र */
+  var mr = (I18N.mr && I18N.mr[key]) ? I18N.mr[key] : key;
+  var en = (I18N.en && I18N.en[key]) ? I18N.en[key] : '';
+  if (vars){ mr = T(key, vars); en = (I18N.en && I18N.en[key]) ? I18N.en[key].replace(/\{(\w+)\}/g, function(_,k){ return vars[k]!==undefined?vars[k]:'{'+k+'}'; }) : ''; }
+  el.innerHTML = esc(mr) + (en && en !== mr ? ' <span style="opacity:.65;font-size:11px">/ ' + esc(en) + '</span>' : '');
 }
 
 /* Firestore Timestamp किंवा साधा number — दोन्ही चालावेत */
@@ -1414,12 +1437,14 @@ function renderCards(){
   var list = visibleToilets();
   var wrap = $('#cards');
 
-  $('#resultLine').textContent = T(state.pos ? 'list.countNear' : 'list.countRated', { n: list.length });
+  var cntKey = state.pos ? 'list.countNear' : 'list.countRated';
+  $('#resultLine').innerHTML = esc(T(cntKey, { n: list.length })) +
+    (I18N.en && I18N.en[cntKey] ? ' <span style="opacity:.6;font-size:12px">/ ' + esc(I18N.en[cntKey].replace('{n}', list.length)) + '</span>' : '');
 
   if (!list.length){
     wrap.innerHTML = '<div class="empty"><div class="big">🔍</div>' +
-      '<p>' + esc(T('list.emptyTitle')) + '</p>' +
-      '<p style="font-size:13px">' + esc(T('list.emptyHint')) + '</p></div>';
+      '<p>' + esc(T('list.emptyTitle')) + '<br><span style="font-size:13px;opacity:.65">' + esc(I18N.en['list.emptyTitle']||'') + '</span></p>' +
+      '<p style="font-size:13px">' + esc(T('list.emptyHint')) + '<br><span style="opacity:.65">' + esc(I18N.en['list.emptyHint']||'') + '</span></p></div>';
     return;
   }
 
@@ -2118,17 +2143,24 @@ function renderAdmin(){
 
   /* top complaint types chart */
   var counts = {};
-  state.complaints.forEach(function(c){ counts[c.type] = (counts[c.type] || 0) + 1; });
+  state.complaints.forEach(function(c){
+    var types = Array.isArray(c.type) ? c.type : [c.type];
+    types.forEach(function(tp){ counts[tp] = (counts[tp] || 0) + 1; });
+  });
   var rows = Object.keys(counts).map(function(k){ return [k, counts[k]]; })
                    .sort(function(a,b){ return b[1] - a[1]; }).slice(0, 5);
   var maxN = rows.length ? rows[0][1] : 1;
   $('#chartBars').innerHTML = rows.length
     ? rows.map(function(r){
-        return '<div class="bar-row"><span class="lbl">' + esc(complaintTypeLabel(r[0])) + '</span>' +
+        var mrLabel = complaintTypeLabel(r[0]);
+        var enLabel = (I18N.en && r[0]) ? (function(){
+          for(var i=0;i<COMPLAINT_TYPES.length;i++){ if(COMPLAINT_TYPES[i].value===r[0]) return I18N.en[COMPLAINT_TYPES[i].key]||''; } return '';
+        })() : '';
+        return '<div class="bar-row"><span class="lbl">' + esc(mrLabel) + (enLabel ? '<br><span style="font-size:10px;opacity:.65">'+esc(enLabel)+'</span>' : '') + '</span>' +
                '<span class="bar-track"><span class="bar-fill" style="width:' + Math.round(r[1]/maxN*100) + '%"></span></span>' +
                '<span class="val">' + r[1] + '</span></div>';
       }).join('')
-    : '<p class="hint">' + esc(T('admin.noComplaints')) + '</p>';
+    : '<p class="hint">' + TB('admin.noComplaints') + '</p>';
 
   /* complaints tab */
   $('#tab-complaints').innerHTML = state.complaints.length
@@ -2137,7 +2169,7 @@ function renderAdmin(){
         var typeLabel = complaintTypeLabel(c.type);
         return '<div class="cmp">' +
           '<div class="cmp-head"><strong>' + esc(c.toiletName) + '</strong>' +
-            '<span class="tag ' + c.status + '">' + esc(T(c.status === 'open' ? 'admin.pending' : 'admin.resolved')) + '</span></div>' +
+            '<span class="tag ' + c.status + '">' + TB(c.status === 'open' ? 'admin.pending' : 'admin.resolved') + '</span></div>' +
           '<p><b>' + esc(typeLabel) + '</b>' + (c.waitTime ? ' · ⏱️ ' + esc(c.waitTime) : '') + '</p>' +
           '<p>' + esc(c.text) + '</p>' +
           (photoList.length ? '<div style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0">' +
@@ -2145,21 +2177,23 @@ function renderAdmin(){
           '</div>' : '') +
           '<p class="when">🕒 ' + fmtTime(c.createdAt) + '</p>' +
           (c.status === 'open'
-            ? '<button class="btn" style="margin-top:9px;padding:10px" data-resolve="' + c.id + '">' + esc(T('admin.markResolved')) + '</button>'
-            : '<p class="when">' + esc(T('admin.resolvedOn', { time: fmtTime(c.resolvedAt) })) + '</p>') +
+            ? '<button class="btn" style="margin-top:9px;padding:10px" data-resolve="' + c.id + '">' + TB('admin.markResolved') + '</button>'
+            : '<p class="when">' + TB('admin.resolvedOn').replace('{time}', fmtTime(c.resolvedAt)) + '</p>') +
         '</div>';
       }).join('')
-    : '<div class="empty"><div class="big">✅</div><p>' + esc(T('admin.allClear')) + '</p></div>';
+    : '<div class="empty"><div class="big">✅</div><p>' + TB('admin.allClear') + '</p></div>';
 
   /* toilets tab */
   $('#tab-toilets').innerHTML = state.toilets.map(function(t){
     return '<div class="admin-row">' +
-      '<div class="info"><b>' + esc(t.name) + '</b><span>' + esc(t.area) + ' · ★ ' + t.rating.toFixed(1) + '</span></div>' +
+      '<div class="info"><b>' + esc(t.name) + '</b>' +
+        (t.englishName ? '<span style="font-size:12px;opacity:.7">' + esc(t.englishName) + '</span>' : '') +
+        '<span>' + esc(t.area) + ' · ★ ' + t.rating.toFixed(1) + '</span></div>' +
       '<div class="acts">' +
-        '<button class="toggle qr" data-qr="' + esc(t.id) + '">' + esc(T('admin.qr')) + '</button>' +
+        '<button class="toggle qr" data-qr="' + esc(t.id) + '">' + TB('admin.qr') + '</button>' +
         '<button class="toggle" data-toggle="' + esc(t.id) + '" style="color:' + (t.open ? 'var(--ok)' : 'var(--danger)') + '">' +
-          esc(T(t.open ? 'card.open' : 'card.closed')) + '</button>' +
-        '<button class="toggle" data-del="' + esc(t.id) + '" style="color:var(--danger)">' + esc(T('admin.remove')) + '</button>' +
+          TB(t.open ? 'card.open' : 'card.closed') + '</button>' +
+        '<button class="toggle" data-del="' + esc(t.id) + '" style="color:var(--danger)">' + TB('admin.remove') + '</button>' +
       '</div>' +
     '</div>';
   }).join('');
