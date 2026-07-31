@@ -1031,39 +1031,72 @@ function applyLanguage(){
   if (qrTarget && $('#qrModal').classList.contains('show')) openQr(qrTarget);
 }
 
-/* ---------- 10 नमुना टॉयलेट (अहिल्यानगर) ---------- */
+/* ---------- 26 अधिकृत शौचालये — अहिल्यानगर महानगर पालिका 2026 ---------- */
 var SEED_TOILETS = [
-  { id:'t1', name:'सुलभ शौचालय, तारकपूर बस स्थानक', englishName:'Sulabh Toilet, Tarakpur Bus Stand', area:'तारकपूर', englishArea:'Tarakpur', lat:19.0862, lng:74.7386,
-    type:'both', divyang:true, open:true, rating:4.3, votes:52, timing:'24 तास',
-    facilities:['पाणी','वीज','सॅनिटरी पॅड','दिव्यांग रॅम्प'] },
-  { id:'t2', name:'सार्वजनिक शौचालय, मार्केट यार्ड', englishName:'Public Toilet, Market Yard', area:'नागापूर', englishArea:'Nagapur', lat:19.0701, lng:74.7182,
-    type:'both', divyang:false, open:true, rating:3.6, votes:31, timing:'24 तास',
-    facilities:['पाणी','वीज'] },
-  { id:'t3', name:'रेल्वे स्थानक शौचालय', englishName:'Railway Station Toilet', area:'रेल्वे स्टेशन रोड', englishArea:'Railway Station Road', lat:19.0817, lng:74.7215,
-    type:'both', divyang:true, open:true, rating:4.0, votes:74, timing:'24 तास',
-    facilities:['पाणी','वीज','दिव्यांग रॅम्प','स्वच्छता कर्मचारी'] },
-  { id:'t4', name:'महिला स्वच्छतागृह, दिल्ली गेट', englishName:"Women's Toilet, Delhi Gate", area:'दिल्ली गेट', englishArea:'Delhi Gate', lat:19.0946, lng:74.7452,
-    type:'ladies', divyang:true, open:true, rating:4.6, votes:47, timing:'24 तास',
-    facilities:['पाणी','वीज','सॅनिटरी पॅड','हिरकणी कक्ष'] },
-  { id:'t5', name:'सार्वजनिक शौचालय, चितळे रोड', englishName:'Public Toilet, Chitale Road', area:'चितळे रोड', englishArea:'Chitale Road', lat:19.0938, lng:74.7401,
-    type:'both', divyang:false, open:false, rating:2.8, votes:23, timing:'24 तास',
-    facilities:['पाणी'] },
-  { id:'t6', name:'वाडिया पार्क शौचालय', englishName:'Wadia Park Toilet', area:'वाडिया पार्क', englishArea:'Wadia Park', lat:19.0975, lng:74.7368,
-    type:'both', divyang:true, open:true, rating:4.4, votes:66, timing:'24 तास',
-    facilities:['पाणी','वीज','दिव्यांग रॅम्प','बेबी केअर'] },
-  { id:'t7', name:'सुलभ शौचालय, सावेडी नाका', englishName:'Sulabh Toilet, Savedi Naka', area:'सावेडी', englishArea:'Savedi', lat:19.1092, lng:74.7395,
-    type:'both', divyang:false, open:true, rating:3.9, votes:38, timing:'24 तास',
-    facilities:['पाणी','वीज'] },
-  { id:'t8', name:'भिंगार बाजारपेठ शौचालय', englishName:'Bhingar Market Toilet', area:'भिंगार', englishArea:'Bhingar', lat:19.1512, lng:74.7825,
-    type:'both', divyang:false, open:true, rating:3.2, votes:19, timing:'24 तास',
-    facilities:['पाणी'] },
-  { id:'t9', name:'किल्ला परिसर शौचालय', englishName:'Fort Area Toilet', area:'अहमदनगर किल्ला', englishArea:'Ahmednagar Fort', lat:19.0983, lng:74.7588,
-    type:'both', divyang:true, open:true, rating:4.1, votes:29, timing:'24 तास',
-    facilities:['पाणी','वीज','दिव्यांग रॅम्प'] },
-  { id:'t10', name:'महिला शौचालय, केडगाव देवी', englishName:"Women's Toilet, Kedgaon Devi", area:'केडगाव', englishArea:'Kedgaon', lat:19.0602, lng:74.7318,
-    type:'ladies', divyang:false, open:true, rating:3.7, votes:26, timing:'24 तास',
-    facilities:['पाणी','सॅनिटरी पॅड'] }
+  { id:'t1', name:'सामुदायिक शौचालय, संजयनगर', englishName:'Community Toilet, Sanjay Nagar', area:'संजयनगर', englishArea:'Sanjay Nagar', lat:19.1058, lng:74.7448,
+    type:'both', divyang:false, open:true, rating:0, votes:0, timing:'24 तास', facilities:['पाणी','वीज'] },
+  { id:'t2', name:'सामुदायिक शौचालय, शांतिनगर केदारवस्ती', englishName:'Community Toilet, Shantinagar Kedarvasti', area:'शांतिनगर', englishArea:'Shantinagar Kedarvasti', lat:19.0798, lng:74.7348,
+    type:'both', divyang:false, open:true, rating:0, votes:0, timing:'24 तास', facilities:['पाणी','वीज'] },
+  { id:'t3', name:'सामुदायिक शौचालय, झुलेलाल तारकपूर', englishName:'Community Toilet, Zulelal Tarakpur', area:'तारकपूर', englishArea:'Tarakpur', lat:19.1082, lng:74.7493,
+    type:'both', divyang:false, open:true, rating:0, votes:0, timing:'24 तास', facilities:['पाणी','वीज'] },
+  { id:'t4', name:'सामुदायिक शौचालय, सावेडी गावठाण', englishName:'Community Toilet, Savedi Gavthan', area:'सावेडी', englishArea:'Savedi Gavthan', lat:19.0742, lng:74.7608,
+    type:'both', divyang:false, open:true, rating:0, votes:0, timing:'24 तास', facilities:['पाणी'] },
+  { id:'t5', name:'सामुदायिक शौचालय, माळीवाडा', englishName:'Community Toilet, Maliwada Slum', area:'माळीवाडा', englishArea:'Maliwada', lat:19.0892, lng:74.7518,
+    type:'both', divyang:false, open:true, rating:0, votes:0, timing:'24 तास', facilities:['पाणी'] },
+  { id:'t6', name:'सामुदायिक शौचालय, कोठी रोड', englishName:'Community Toilet, Kothi Road', area:'कोठी रोड', englishArea:'Kothi Road', lat:19.0948, lng:74.7482,
+    type:'both', divyang:false, open:true, rating:0, votes:0, timing:'24 तास', facilities:['पाणी','वीज'] },
+  { id:'t7', name:'सामुदायिक शौचालय, नागापूर गावठाण', englishName:'Community Toilet, Nagapur Gavthan', area:'नागापूर', englishArea:'Nagapur Gavthan', lat:19.1008, lng:74.7378,
+    type:'both', divyang:false, open:true, rating:0, votes:0, timing:'24 तास', facilities:['पाणी','वीज'] },
+  { id:'t8', name:'सार्वजनिक शौचालय, रेल्वे स्थानक', englishName:'Public Toilet, Railway Station', area:'रेल्वे स्थानक', englishArea:'Railway Station', lat:19.0969, lng:74.7371,
+    type:'both', divyang:true, open:true, rating:0, votes:0, timing:'24 तास', facilities:['पाणी','वीज','दिव्यांग रॅम्प'] },
+  { id:'t9', name:'सार्वजनिक शौचालय, नेपती रोड केडगाव', englishName:'Public Toilet, Nepti Road Kedgaon', area:'केडगाव', englishArea:'Kedgaon', lat:19.0772, lng:74.7338,
+    type:'both', divyang:false, open:true, rating:0, votes:0, timing:'24 तास', facilities:['पाणी'] },
+  { id:'t10', name:'सार्वजनिक शौचालय, दिल्ली गेट', englishName:'Public Toilet, New Arts College Delhi Gate Road', area:'दिल्ली गेट', englishArea:'Delhi Gate', lat:19.0992, lng:74.7455,
+    type:'both', divyang:false, open:true, rating:0, votes:0, timing:'24 तास', facilities:['पाणी','वीज'] },
+  { id:'t11', name:'सार्वजनिक शौचालय, जलाराम बेकरी केडगाव', englishName:'Public Toilet, Jalaram Bakery Nagar-Pune Road Kedgaon', area:'केडगाव', englishArea:'Kedgaon', lat:19.0768, lng:74.7325,
+    type:'both', divyang:false, open:true, rating:0, votes:0, timing:'24 तास', facilities:['पाणी'] },
+  { id:'t12', name:'सार्वजनिक शौचालय, तोफखाना', englishName:'Public Toilet, Tophkhana', area:'तोफखाना', englishArea:'Tophkhana', lat:19.0938, lng:74.7490,
+    type:'both', divyang:false, open:true, rating:0, votes:0, timing:'24 तास', facilities:['पाणी','वीज'] },
+  { id:'t13', name:'सार्वजनिक शौचालय, गांधी मैदान', englishName:'Public Toilet, Gandhi Maidan', area:'गांधी मैदान', englishArea:'Gandhi Maidan', lat:19.0958, lng:74.7462,
+    type:'both', divyang:false, open:true, rating:0, votes:0, timing:'24 तास', facilities:['पाणी','वीज'] },
+  { id:'t14', name:'सार्वजनिक शौचालय, जुनी महानगरपालिका माळीवाडा', englishName:'Public Toilet, Old AMC Office Maliwada', area:'माळीवाडा', englishArea:'Maliwada', lat:19.0898, lng:74.7525,
+    type:'both', divyang:false, open:true, rating:0, votes:0, timing:'24 तास', facilities:['पाणी'] },
+  { id:'t15', name:'सार्वजनिक शौचालय, माळीवाडा बस स्थानक', englishName:'Public Toilet, Maliwada Bus Stand', area:'माळीवाडा', englishArea:'Maliwada', lat:19.0912, lng:74.7512,
+    type:'both', divyang:false, open:true, rating:0, votes:0, timing:'24 तास', facilities:['पाणी','वीज'] },
+  { id:'t16', name:'सार्वजनिक शौचालय, गोकुळवाडी रामवाडी', englishName:'Public Toilet, Gokulwadi Slum Ramwadi', area:'रामवाडी', englishArea:'Ramwadi', lat:19.0872, lng:74.7558,
+    type:'both', divyang:false, open:true, rating:0, votes:0, timing:'24 तास', facilities:['पाणी'] },
+  { id:'t17', name:'सार्वजनिक शौचालय, स्वस्तिक चौक', englishName:'Public Toilet, Pune Bus Stand No.3 Swastik Chowk', area:'स्वस्तिक चौक', englishArea:'Swastik Chowk', lat:19.0758, lng:74.7318,
+    type:'both', divyang:false, open:true, rating:0, votes:0, timing:'24 तास', facilities:['पाणी','वीज'] },
+  { id:'t18', name:'सार्वजनिक शौचालय, तारकपूर बस स्थानक', englishName:'Public Toilet, Tarakpur Bus Stand', area:'तारकपूर', englishArea:'Tarakpur', lat:19.1088, lng:74.7495,
+    type:'both', divyang:false, open:true, rating:0, votes:0, timing:'24 तास', facilities:['पाणी','वीज'] },
+  { id:'t19', name:'सार्वजनिक शौचालय, चाणक्य चौक आयटीआय', englishName:'Public Toilet, Chanakya Chowk ITI College Burudgao Road', area:'बुरुडगाव रोड', englishArea:'Burudgao Road', lat:19.1038, lng:74.7428,
+    type:'both', divyang:false, open:true, rating:0, votes:0, timing:'24 तास', facilities:['पाणी','वीज'] },
+  { id:'t20', name:'सामुदायिक शौचालय, रामवाडी गडाख नाला', englishName:'Community Toilet, Ramwadi Gadakh Nala', area:'रामवाडी', englishArea:'Ramwadi', lat:19.0878, lng:74.7548,
+    type:'both', divyang:false, open:true, rating:0, votes:0, timing:'24 तास', facilities:['पाणी'] },
+  { id:'t21', name:'सार्वजनिक शौचालय, प्रोफेसर चौक सावेडी', englishName:'Public Toilet, Professor Chowk Savedi', area:'सावेडी', englishArea:'Savedi', lat:19.0788, lng:74.7572,
+    type:'both', divyang:false, open:true, rating:0, votes:0, timing:'24 तास', facilities:['पाणी','वीज'] },
+  { id:'t22', name:'सामुदायिक शौचालय, ढोर वस्ती बालिका आश्रम', englishName:'Community Toilet, Dhor Wasti Balika Ashram Road', area:'बालिका आश्रम रोड', englishArea:'Balika Ashram Road', lat:19.0928, lng:74.7578,
+    type:'both', divyang:false, open:true, rating:0, votes:0, timing:'24 तास', facilities:['पाणी'] },
+  { id:'t23', name:'सार्वजनिक शौचालय, रंगभवन', englishName:'Public Toilet, Rangbhavan', area:'रंगभवन', englishArea:'Rangbhavan', lat:19.0962, lng:74.7428,
+    type:'both', divyang:false, open:true, rating:0, votes:0, timing:'24 तास', facilities:['पाणी','वीज'] },
+  { id:'t24', name:'सामुदायिक शौचालय, गंज बाजार भाजी मार्केट', englishName:'Community Toilet, Ganj Bazar Bhaji Market', area:'गंज बाजार', englishArea:'Ganj Bazar', lat:19.0968, lng:74.7502,
+    type:'both', divyang:false, open:true, rating:0, votes:0, timing:'24 तास', facilities:['पाणी','वीज'] },
+  { id:'t25', name:'सामुदायिक शौचालय, माणिक चौक', englishName:'Community Toilet, Manik Chowk Ahilyanagar', area:'माणिक चौक', englishArea:'Manik Chowk', lat:19.0944, lng:74.7468,
+    type:'both', divyang:false, open:true, rating:0, votes:0, timing:'24 तास', facilities:['पाणी','वीज'] },
+  { id:'t26', name:'सार्वजनिक शौचालय, मल्हार चौक', englishName:'Public Toilet, Malhar Chowk Railway Station Road', area:'मल्हार चौक', englishArea:'Malhar Chowk', lat:19.0978, lng:74.7388,
+    type:'both', divyang:false, open:true, rating:0, votes:0, timing:'24 तास', facilities:['पाणी','वीज'] }
 ];
+
+/* ---------- Seed version migration: नवीन 26 real toilets load करा ---------- */
+(function migrateSeed(){
+  var SEED_VERSION = '2026-v2'; // हे बदलले की नवीन data येईल
+  var storedVersion = localStorage.getItem('toiletSeedVersion');
+  if (storedVersion !== SEED_VERSION){
+    // जुना sample data काढा, नवीन real data टाका
+    localStorage.removeItem('ts_toilets');
+    localStorage.setItem('toiletSeedVersion', SEED_VERSION);
+  }
+})();
 
 /* ---------- Data migration: जुने timing → 24 तास ---------- */
 (function migrateTiming(){
