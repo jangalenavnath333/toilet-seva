@@ -136,12 +136,13 @@ a{color:var(--brand)}
 .card-head{display:flex;gap:10px;align-items:flex-start}
 .card-head h3{font-size:16.5px;font-weight:800;flex:1;min-width:0}
 /* नाव मराठीत ठळक, खाली इंग्रजी नाव लहान व फिकट */
-.card .name-mr{font-size:16.5px;font-weight:800;line-height:1.3}
-.card .name-en{font-size:13px;font-weight:600;color:var(--muted);line-height:1.35;margin-top:1px}
+/* English now primary (big), Marathi secondary (small) */
+.card .name-en{font-size:16.5px;font-weight:800;line-height:1.3}
+.card .name-mr{font-size:12.5px;font-weight:600;color:var(--muted);line-height:1.35;margin-top:1px}
 .card .area{margin:3px 0 0;font-size:13px;color:var(--muted)}
-.card .area-en{opacity:.8}
-/* द्विभाषी लेबल — मराठीखाली इंग्रजी */
-.bil-en{display:block;font-size:10px;font-weight:500;opacity:.65;line-height:1.3;margin-top:1px}
+.card .area-mr{opacity:.75;font-size:12px}
+/* द्विभाषी लेबल — secondary language (Marathi) खाली लहान */
+.bil-en,.bil-sub{display:block;font-size:10px;font-weight:500;opacity:.65;line-height:1.3;margin-top:1px}
 .status{
   flex:0 0 auto;font-size:11.5px;font-weight:800;padding:4px 10px;border-radius:999px;
   background:rgba(22,163,74,.14);color:var(--ok);text-align:center;line-height:1.25;
@@ -392,12 +393,12 @@ a{color:var(--brand)}
     <button class="clear" id="searchClear" data-i18n-aria="list.clearAria" aria-label="शोध पुसा">✕</button>
   </div>
 
-  <div class="chips" id="chips" role="group" aria-label="फिल्टर">
-    <button class="chip" data-filter="all" aria-pressed="true">सर्व<span class="bil-en">All</span></button>
-    <button class="chip" data-filter="ladies" aria-pressed="false">महिला<span class="bil-en">Women</span></button>
-    <button class="chip" data-filter="divyang" aria-pressed="false">दिव्यांग<span class="bil-en">Accessible</span></button>
-    <button class="chip" data-filter="open" aria-pressed="false">उपलब्ध<span class="bil-en">Open</span></button>
-    <button class="chip" data-filter="top" aria-pressed="false">★★★★<span class="bil-en">Top rated</span></button>
+  <div class="chips" id="chips" role="group" aria-label="Filters">
+    <button class="chip" data-filter="all" aria-pressed="true">All<span class="bil-sub">सर्व</span></button>
+    <button class="chip" data-filter="ladies" aria-pressed="false">Women<span class="bil-sub">महिला</span></button>
+    <button class="chip" data-filter="divyang" aria-pressed="false">Accessible<span class="bil-sub">दिव्यांग</span></button>
+    <button class="chip" data-filter="open" aria-pressed="false">Open<span class="bil-sub">उपलब्ध</span></button>
+    <button class="chip" data-filter="top" aria-pressed="false">★★★★<span class="bil-sub">Top rated</span></button>
   </div>
 
   <div class="result-line" id="resultLine"></div>
@@ -552,10 +553,10 @@ a{color:var(--brand)}
 
 <!-- ================= Nav ================= -->
 <nav class="nav" role="tablist">
-  <button data-screen="list" aria-current="true"><span class="ic">📋</span><span data-i18n-bi="nav.list">यादी</span></button>
-  <button data-screen="map" aria-current="false"><span class="ic">🗺️</span><span data-i18n-bi="nav.map">नकाशा</span></button>
-  <button data-screen="complaint" aria-current="false"><span class="ic">📝</span><span data-i18n-bi="nav.complaint">तक्रार</span></button>
-  <button data-screen="admin" aria-current="false"><span class="ic">🛡️</span><span data-i18n-bi="nav.admin">प्रशासन</span></button>
+  <button data-screen="list" aria-current="true"><span class="ic">📋</span><span data-i18n-bi="nav.list">List</span></button>
+  <button data-screen="map" aria-current="false"><span class="ic">🗺️</span><span data-i18n-bi="nav.map">Map</span></button>
+  <button data-screen="complaint" aria-current="false"><span class="ic">📝</span><span data-i18n-bi="nav.complaint">Complaint</span></button>
+  <button data-screen="admin" aria-current="false"><span class="ic">🛡️</span><span data-i18n-bi="nav.admin">Admin</span></button>
 </nav>
 
 <!-- ================= Rating sheet ================= -->
@@ -956,20 +957,20 @@ function dataText(s){
   return s;
 }
 
-/* TB(key) — नेहमी मराठी + English दाखवतो (दोन्ही ओळी) */
+/* TB(key) — English वर मोठा, Marathi खाली लहान */
 function TB(key){
   var mr = (I18N.mr && I18N.mr[key]) || key;
   var en = (I18N.en && I18N.en[key]) || '';
-  if (!en || en === mr) return esc(mr);
-  return esc(mr) + '<span class="bil-en">' + esc(en) + '</span>';
+  if (!en || en === mr) return esc(en || mr);
+  return esc(en) + '<span class="bil-sub">' + esc(mr) + '</span>';
 }
 
-/* biData(mrStr) — data string साठी Marathi + English */
+/* biData(mrStr) — English वर, Marathi खाली */
 function biData(s){
   if (!s) return '';
   var en = DATA_EN[s] || (s === '24 तास' ? '24 hours' : '');
   if (!en) return esc(s);
-  return esc(s) + '<span class="bil-en">' + esc(en) + '</span>';
+  return esc(en) + '<span class="bil-sub">' + esc(s) + '</span>';
 }
 
 function T(key, vars){
@@ -1200,7 +1201,7 @@ function setGps(key, vars, asHtml){
   function applyVars(s){ return s ? s.replace(/\{(\w+)\}/g, function(_,k){ return vars&&vars[k]!==undefined?esc(String(vars[k])):'{'+k+'}'; }) : ''; }
   var mr = applyVars((I18N.mr && I18N.mr[key]) || key);
   var en = applyVars((I18N.en && I18N.en[key]) || '');
-  el.innerHTML = mr + (en && en !== mr ? ' <span style="opacity:.65;font-size:11px">/ ' + en + '</span>' : '');
+  el.innerHTML = en + (mr && en !== mr ? ' <span style="opacity:.65;font-size:11px">/ ' + mr + '</span>' : '');
 }
 
 /* Firestore Timestamp किंवा साधा number — दोन्ही चालावेत */
@@ -1453,8 +1454,10 @@ function renderCards(){
   var wrap = $('#cards');
 
   var cntKey = state.pos ? 'list.countNear' : 'list.countRated';
-  $('#resultLine').innerHTML = esc(T(cntKey, { n: list.length })) +
-    (I18N.en && I18N.en[cntKey] ? ' <span style="opacity:.6;font-size:12px">/ ' + esc(I18N.en[cntKey].replace('{n}', list.length)) + '</span>' : '');
+  var enCount = I18N.en && I18N.en[cntKey] ? I18N.en[cntKey].replace('{n}', list.length) : '';
+  var mrCount = I18N.mr && I18N.mr[cntKey] ? I18N.mr[cntKey].replace('{n}', list.length) : '';
+  $('#resultLine').innerHTML = esc(enCount || mrCount) +
+    (mrCount && enCount ? ' <span style="opacity:.6;font-size:12px">/ ' + esc(mrCount) + '</span>' : '');
 
   if (!list.length){
     wrap.innerHTML = '<div class="empty"><div class="big">🔍</div>' +
@@ -1468,10 +1471,10 @@ function renderCards(){
     return '<article class="card">' +
       '<div class="card-head">' +
         '<div style="flex:1;min-width:0">' +
-          '<h3 class="name-mr">' + esc(t.name) + '</h3>' +
-          (enName(t) ? '<div class="name-en">' + esc(enName(t)) + '</div>' : '') +
-          '<p class="area">📍 <span class="area-mr">' + esc(t.area) + '</span>' +
-            (enArea(t) ? '<span class="area-en"> · ' + esc(enArea(t)) + '</span>' : '') +
+          '<h3 class="name-en">' + esc(enName(t) || t.name) + '</h3>' +
+          '<div class="name-mr">' + esc(t.name) + '</div>' +
+          '<p class="area">📍 <span class="area-en">' + esc(enArea(t) || t.area) + '</span>' +
+            (enArea(t) ? '<span class="area-mr"> · ' + esc(t.area) + '</span>' : '') +
             ' · ' + biData(t.timing || '') + '</p>' +
         '</div>' +
         '<span class="status' + (t.open ? '' : ' closed') + '">' + TB(t.open ? 'card.open' : 'card.closed') + '</span>' +
@@ -1766,9 +1769,8 @@ function fillComplaintTypes(){
     /* always show both Marathi and English label */
     var mr = (I18N.mr && I18N.mr[c.key]) || c.value;
     var en = (I18N.en && I18N.en[c.key]) || '';
-    var label = state.lang === 'mr'
-      ? esc(mr) + (en ? '<span style="display:block;font-size:10px;font-weight:400;opacity:.7">' + esc(en) + '</span>' : '')
-      : esc(en) + '<span style="display:block;font-size:10px;font-weight:400;opacity:.7">' + esc(mr) + '</span>';
+    /* English वर मोठा, Marathi खाली लहान */
+    var label = esc(en || mr) + (mr ? '<span style="display:block;font-size:10px;font-weight:400;opacity:.65">' + esc(mr) + '</span>' : '');
     return '<label class="ctype-chip" data-val="' + esc(c.value) + '">' +
       '<input type="checkbox" value="' + esc(c.value) + '">' +
       c.emoji + ' ' + label +
