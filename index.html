@@ -513,6 +513,13 @@ a{color:var(--brand)}
       <button class="toggle" id="adminLogout" data-i18n="admin.logout">बाहेर पडा</button>
     </div>
 
+    <!-- 26 Real Toilet Data Upload Button -->
+    <div id="reseedBanner" style="background:#fff3cd;border:1px solid #ffc107;border-radius:10px;padding:12px 14px;margin-bottom:14px;display:none">
+      <div style="font-weight:700;font-size:13px;color:#856404;margin-bottom:6px">⚠️ Firestore मध्ये जुना data आहे — 26 नवीन toilets upload करा</div>
+      <button id="reseedBtn" class="primary" style="font-size:13px;padding:8px 16px">🔄 Update to 26 Real Toilets</button>
+      <span id="reseedStatus" style="font-size:12px;color:#666;margin-left:10px"></span>
+    </div>
+
     <div class="stats">
       <div class="stat a"><div class="n" id="stTotal">0</div><div class="l" data-i18n="admin.stTotal">एकूण टॉयलेट</div></div>
       <div class="stat b"><div class="n" id="stOpen">0</div><div class="l" data-i18n="admin.stOpen">प्रलंबित तक्रारी</div></div>
@@ -625,7 +632,7 @@ var LS = {
   toilets:'ts_toilets', complaints:'ts_complaints', points:'ts_points',
   theme:'ts_theme', rated:'ts_rated', admin:'ts_admin', lang:'ts_lang'
 };
-var ADMIN_PASSWORD = 'admin123';
+var ADMIN_PASSWORD = 'palika@2026';
 var PTS = { rating:5, complaint:10, resolved:15 };
 var AHILYANAGAR = [19.0948, 74.7480];
 
@@ -1098,15 +1105,22 @@ var SEED_TOILETS = [
     type:'both', divyang:false, open:true, rating:0, votes:0, timing:'24 तास', facilities:['पाणी','वीज'] }
 ];
 
-/* ---------- Seed version migration: नवीन 26 real toilets load करा ---------- */
+/* ---------- Seed version migration: नवीन 26 real toilets force-load करा ---------- */
 (function migrateSeed(){
-  var SEED_VERSION = '2026-v2'; // हे बदलले की नवीन data येईल
+  var SEED_VERSION = '2026-v3';
   var storedVersion = localStorage.getItem('toiletSeedVersion');
   if (storedVersion !== SEED_VERSION){
-    // जुना sample data काढा, नवीन real data टाका
     localStorage.removeItem('ts_toilets');
     localStorage.setItem('toiletSeedVersion', SEED_VERSION);
+    return;
   }
+  // Extra check: जर stored toilets < 26 असतील तर नवीन data load करा
+  try {
+    var stored = JSON.parse(localStorage.getItem('ts_toilets') || '[]');
+    if (!stored.length || stored.length < 20){
+      localStorage.removeItem('ts_toilets');
+    }
+  } catch(e){ localStorage.removeItem('ts_toilets'); }
 })();
 
 /* ---------- Data migration: जुने timing → 24 तास ---------- */
@@ -1305,6 +1319,10 @@ function watchToilets(){
     save(LS.toilets, state.toilets);
     setSync('on', 'sync.cloud');
 
+    // जर Firestore मध्ये < 20 toilets आहेत → admin ला banner दाखवा
+    var banner = $('#reseedBanner');
+    if (banner) banner.style.display = (state.isAdmin && state.toilets.length < 20) ? 'block' : 'none';
+
     renderCards();
     fillToiletSelect();
     refreshMarkers();
@@ -1330,6 +1348,42 @@ function seedToilets(){
     fb.seeded = false;
     console.warn('seed अयशस्वी:', err);
     setSync('off', 'sync.local');
+  });
+}
+
+/* ---------- 26 Real Toilets Force Reseed ---------- */
+function forceReseedToilets(){
+  if (!fb.ok) return;
+  var statusEl = $('#reseedStatus');
+  var btn = $('#reseedBtn');
+  if (btn) btn.disabled = true;
+  if (statusEl) statusEl.textContent = 'Deleting old data...';
+
+  // Step 1: Delete all existing toilet docs
+  fb.db.collection('toilets').get().then(function(snap){
+    var batch = fb.db.batch();
+    snap.docs.forEach(function(d){ batch.delete(d.ref); });
+    return batch.commit();
+  }).then(function(){
+    // Step 2: Upload all 26 new toilets
+    if (statusEl) statusEl.textContent = 'Uploading 26 toilets...';
+    var batch2 = fb.db.batch();
+    SEED_TOILETS.forEach(function(t){
+      var copy = JSON.parse(JSON.stringify(t));
+      delete copy.id;
+      copy.createdAt = Date.now();
+      batch2.set(fb.db.collection('toilets').doc(t.id), copy);
+    });
+    return batch2.commit();
+  }).then(function(){
+    if (statusEl) statusEl.textContent = '✅ Done! 26 toilets uploaded.';
+    var banner = $('#reseedBanner');
+    if (banner) setTimeout(function(){ banner.style.display='none'; }, 3000);
+    toast('26 real toilets Firestore मध्ये save झाले!');
+  }).catch(function(err){
+    if (statusEl) statusEl.textContent = '❌ Error: ' + err.message;
+    if (btn) btn.disabled = false;
+    console.warn('Reseed failed:', err);
   });
 }
 
@@ -2160,6 +2214,20 @@ $('#adminLoginBtn').addEventListener('click', function(){
   var email = $('#adminEmail').value.trim();
   var pass  = $('#adminPass').value;
 
+  /* Local password check — Firebase असो वा नसो, password बरोबर असेल तर login */
+  if (pass === ADMIN_PASSWORD){
+    state.isAdmin = true;
+    save(LS.admin, true);
+    $('#adminPass').value = '';
+    setAdminUI();
+    toast(T('admin.offlineMode'));
+    // Firebase Auth पण try करा background मध्ये
+    if (fb.ok && email){
+      fb.auth.signInWithEmailAndPassword(email, pass).catch(function(){});
+    }
+    return;
+  }
+
   /* Firebase उपलब्ध नसल्यास (ऑफलाइन / SDK अडलेला) स्थानिक पडताळणी */
   if (!fb.ok){
     if (pass === ADMIN_PASSWORD){
@@ -2192,6 +2260,12 @@ $('#adminLoginBtn').addEventListener('click', function(){
   });
 });
 $('#adminPass').addEventListener('keydown', function(e){ if (e.key === 'Enter') $('#adminLoginBtn').click(); });
+
+$('#reseedBtn').addEventListener('click', function(){
+  if (confirm('Firestore मधील जुने सगळे toilets delete होतील आणि 26 नवीन upload होतील. Continue?')){
+    forceReseedToilets();
+  }
+});
 
 $('#adminLogout').addEventListener('click', function(){
   if (fb.ok && fb.auth.currentUser){
