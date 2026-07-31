@@ -4,7 +4,7 @@
    App shell: cache-first  |  नकाशा टाइल्स: stale-while-revalidate
    ===================================================================== */
 
-var VERSION    = 'v2.2.0-qr';
+var VERSION    = 'v2.3.0-marker';
 var SHELL_CACHE = 'toilet-seva-shell-' + VERSION;
 var TILE_CACHE  = 'toilet-seva-tiles-' + VERSION;
 var LIB_CACHE   = 'toilet-seva-lib-'  + VERSION;
@@ -21,6 +21,7 @@ var CORE = [
 /* वैकल्पिक — नसल्यास install अयशस्वी होऊ नये (उदा. logo.png अजून जोडलेला नसेल) */
 var OPTIONAL = [
   './logo.png',
+  './icon.png',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
   'https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js',
