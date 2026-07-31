@@ -242,6 +242,15 @@ a{color:var(--brand)}
   cursor:pointer;color:var(--muted);background:var(--card);transition:.15s;
 }
 .photo-add-btn:hover{border-color:var(--brand);color:var(--brand)}
+/* Camera / Gallery दोन बटणे */
+.photo-btn-row{display:flex;gap:10px;margin-top:8px}
+.photo-src-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:4px;padding:14px 8px;border-radius:14px;border:2px solid var(--line);
+  background:var(--card);cursor:pointer;color:var(--text);text-align:center;
+  font-size:13px;font-weight:700;transition:.15s;
+}
+.photo-src-btn:active{background:var(--brand-soft);border-color:var(--brand);color:var(--brand)}
 .photo-thumb{
   position:relative;aspect-ratio:1;border-radius:14px;overflow:hidden;
 }
@@ -450,15 +459,21 @@ a{color:var(--brand)}
   </div>
 
   <div class="field">
-    <label><span data-i18n="comp.photo">फोटो जोडा</span> <span style="font-weight:500;color:var(--muted)">(जास्तीत जास्त 3)</span></label>
-    <div id="photoGrid" class="photo-grid">
-      <label class="photo-add-btn" for="cPhoto">
-        <div style="font-size:28px">📸</div>
-        <div style="font-size:12px;margin-top:4px" data-i18n="comp.photoCta">फोटो जोडा</div>
+    <label>📷 फोटो जोडा <span style="font-size:11px;font-weight:500;color:var(--muted)">/ Add Photo (max 3)</span></label>
+    <div class="photo-btn-row">
+      <label class="photo-src-btn" for="cPhotoCamera">
+        <span style="font-size:24px">📷</span>
+        <span>कॅमेरा<span class="bil-en">Camera</span></span>
+      </label>
+      <label class="photo-src-btn" for="cPhotoGallery">
+        <span style="font-size:24px">🖼️</span>
+        <span>गॅलरी<span class="bil-en">Gallery</span></span>
       </label>
     </div>
-    <input id="cPhoto" type="file" accept="image/*" multiple hidden>
-    <p class="hint" style="margin-top:6px" data-i18n="comp.photoHint">पुरावा असल्यास तक्रार लवकर सुटते</p>
+    <input id="cPhotoCamera" type="file" accept="image/*" capture="environment" hidden>
+    <input id="cPhotoGallery" type="file" accept="image/*" multiple hidden>
+    <div id="photoGrid" class="photo-grid" style="margin-top:8px"></div>
+    <p class="hint" style="margin-top:6px">पुरावा असल्यास तक्रार लवकर सुटते / <span style="opacity:.7">Photo evidence helps resolve faster</span></p>
   </div>
 
   <button class="btn" id="submitComplaint" data-i18n="comp.submit">तक्रार पाठवा</button>
@@ -1181,11 +1196,11 @@ function setGps(key, vars, asHtml){
   state.gpsVars = vars || null;
   var el = $('#gpsText');
   if (!el) return;
-  /* GPS text — Marathi + English एकत्र */
-  var mr = (I18N.mr && I18N.mr[key]) ? I18N.mr[key] : key;
-  var en = (I18N.en && I18N.en[key]) ? I18N.en[key] : '';
-  if (vars){ mr = T(key, vars); en = (I18N.en && I18N.en[key]) ? I18N.en[key].replace(/\{(\w+)\}/g, function(_,k){ return vars[k]!==undefined?vars[k]:'{'+k+'}'; }) : ''; }
-  el.innerHTML = esc(mr) + (en && en !== mr ? ' <span style="opacity:.65;font-size:11px">/ ' + esc(en) + '</span>' : '');
+  /* GPS text — Marathi + English एकत्र; HTML keys (gps.live) — innerHTML वापरतो */
+  function applyVars(s){ return s ? s.replace(/\{(\w+)\}/g, function(_,k){ return vars&&vars[k]!==undefined?esc(String(vars[k])):'{'+k+'}'; }) : ''; }
+  var mr = applyVars((I18N.mr && I18N.mr[key]) || key);
+  var en = applyVars((I18N.en && I18N.en[key]) || '');
+  el.innerHTML = mr + (en && en !== mr ? ' <span style="opacity:.65;font-size:11px">/ ' + en + '</span>' : '');
 }
 
 /* Firestore Timestamp किंवा साधा number — दोन्ही चालावेत */
@@ -1935,8 +1950,8 @@ function renderPhotoGrid(){
   });
 }
 
-$('#cPhoto').addEventListener('change', function(e){
-  var files = Array.prototype.slice.call(e.target.files || []);
+function handlePhotoInput(input){
+  var files = Array.prototype.slice.call(input.files || []);
   var remaining = 3 - state.photos.length;
   files = files.slice(0, remaining);
   if (!files.length) return;
@@ -1949,8 +1964,20 @@ $('#cPhoto').addEventListener('change', function(e){
       if (!pending){ renderPhotoGrid(); toast(T('comp.photoAdded')); }
     });
   });
-  $('#cPhoto').value = '';
-});
+  input.value = '';
+}
+
+/* Camera — direct capture */
+var camInput = $('#cPhotoCamera');
+if (camInput) camInput.addEventListener('change', function(){ handlePhotoInput(this); });
+
+/* Gallery — multiple select */
+var galInput = $('#cPhotoGallery');
+if (galInput) galInput.addEventListener('change', function(){ handlePhotoInput(this); });
+
+/* fallback for old single input if still present */
+var oldInput = $('#cPhoto');
+if (oldInput) oldInput.addEventListener('change', function(){ handlePhotoInput(this); });
 
 renderPhotoGrid(); /* initial render */
 
