@@ -120,9 +120,9 @@ a{color:var(--brand)}
 .chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
 .chip{
-  flex:0 0 auto;padding:8px 14px;border-radius:999px;border:1px solid var(--line);
-  background:var(--card);font-size:13.5px;font-weight:600;color:var(--muted);white-space:nowrap;
-  transition:.16s;
+  flex:0 0 auto;padding:7px 14px;border-radius:999px;border:1px solid var(--line);
+  background:var(--card);font-size:13.5px;font-weight:600;color:var(--muted);
+  white-space:nowrap;transition:.16s;text-align:center;line-height:1.25;
 }
 .chip[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:var(--shadow)}
 
@@ -140,9 +140,12 @@ a{color:var(--brand)}
 .card .name-en{font-size:13px;font-weight:600;color:var(--muted);line-height:1.35;margin-top:1px}
 .card .area{margin:3px 0 0;font-size:13px;color:var(--muted)}
 .card .area-en{opacity:.8}
+/* द्विभाषी लेबल — मराठीखाली इंग्रजी */
+.bil-en{display:block;font-size:10px;font-weight:500;opacity:.65;line-height:1.3;margin-top:1px}
 .status{
   flex:0 0 auto;font-size:11.5px;font-weight:800;padding:4px 10px;border-radius:999px;
-  background:rgba(22,163,74,.14);color:var(--ok);
+  background:rgba(22,163,74,.14);color:var(--ok);text-align:center;line-height:1.25;
+  align-self:flex-start;
 }
 .status.closed{background:rgba(217,45,32,.14);color:var(--danger)}
 .meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
@@ -323,7 +326,8 @@ a{color:var(--brand)}
   padding:6px 4px calc(6px + env(safe-area-inset-bottom));
   box-shadow:0 -2px 14px rgba(0,0,0,.07);
 }
-.nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;color:var(--muted);font-size:11.5px;font-weight:700;border-radius:12px}
+.nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 2px;color:var(--muted);font-size:11px;font-weight:700;border-radius:12px}
+.nav button .bil-en{font-size:9px;font-weight:500;opacity:.6;display:block;line-height:1.2;margin-top:0}
 .nav button .ic{font-size:21px;line-height:1}
 .nav button[aria-current="true"]{color:var(--brand)}
 .nav button[aria-current="true"] .ic{transform:translateY(-1px)}
@@ -379,12 +383,12 @@ a{color:var(--brand)}
     <button class="clear" id="searchClear" data-i18n-aria="list.clearAria" aria-label="शोध पुसा">✕</button>
   </div>
 
-  <div class="chips" id="chips" role="group" data-i18n-aria="list.filters" aria-label="फिल्टर">
-    <button class="chip" data-filter="all" aria-pressed="true" data-i18n="filter.all">सर्व</button>
-    <button class="chip" data-filter="ladies" aria-pressed="false" data-i18n="filter.ladies">महिला</button>
-    <button class="chip" data-filter="divyang" aria-pressed="false" data-i18n="filter.divyang">दिव्यांग</button>
-    <button class="chip" data-filter="open" aria-pressed="false" data-i18n="filter.open">उपलब्ध</button>
-    <button class="chip" data-filter="top" aria-pressed="false" data-i18n="filter.top">★★★★</button>
+  <div class="chips" id="chips" role="group" aria-label="फिल्टर">
+    <button class="chip" data-filter="all" aria-pressed="true">सर्व<span class="bil-en">All</span></button>
+    <button class="chip" data-filter="ladies" aria-pressed="false">महिला<span class="bil-en">Women</span></button>
+    <button class="chip" data-filter="divyang" aria-pressed="false">दिव्यांग<span class="bil-en">Accessible</span></button>
+    <button class="chip" data-filter="open" aria-pressed="false">उपलब्ध<span class="bil-en">Open</span></button>
+    <button class="chip" data-filter="top" aria-pressed="false">★★★★<span class="bil-en">Top rated</span></button>
   </div>
 
   <div class="result-line" id="resultLine"></div>
@@ -533,10 +537,10 @@ a{color:var(--brand)}
 
 <!-- ================= Nav ================= -->
 <nav class="nav" role="tablist">
-  <button data-screen="list" aria-current="true"><span class="ic">📋</span><span data-i18n="nav.list">यादी</span></button>
-  <button data-screen="map" aria-current="false"><span class="ic">🗺️</span><span data-i18n="nav.map">नकाशा</span></button>
-  <button data-screen="complaint" aria-current="false"><span class="ic">📝</span><span data-i18n="nav.complaint">तक्रार</span></button>
-  <button data-screen="admin" aria-current="false"><span class="ic">🛡️</span><span data-i18n="nav.admin">प्रशासन</span></button>
+  <button data-screen="list" aria-current="true"><span class="ic">📋</span><span data-i18n-bi="nav.list">यादी</span></button>
+  <button data-screen="map" aria-current="false"><span class="ic">🗺️</span><span data-i18n-bi="nav.map">नकाशा</span></button>
+  <button data-screen="complaint" aria-current="false"><span class="ic">📝</span><span data-i18n-bi="nav.complaint">तक्रार</span></button>
+  <button data-screen="admin" aria-current="false"><span class="ic">🛡️</span><span data-i18n-bi="nav.admin">प्रशासन</span></button>
 </nav>
 
 <!-- ================= Rating sheet ================= -->
@@ -937,6 +941,22 @@ function dataText(s){
   return s;
 }
 
+/* TB(key) — नेहमी मराठी + English दाखवतो (दोन्ही ओळी) */
+function TB(key){
+  var mr = (I18N.mr && I18N.mr[key]) || key;
+  var en = (I18N.en && I18N.en[key]) || '';
+  if (!en || en === mr) return esc(mr);
+  return esc(mr) + '<span class="bil-en">' + esc(en) + '</span>';
+}
+
+/* biData(mrStr) — data string साठी Marathi + English */
+function biData(s){
+  if (!s) return '';
+  var en = DATA_EN[s] || (s === '24 तास' ? '24 hours' : '');
+  if (!en) return esc(s);
+  return esc(s) + '<span class="bil-en">' + esc(en) + '</span>';
+}
+
 function T(key, vars){
   var dict = I18N[state.lang] || I18N.mr;
   var s = dict[key];
@@ -960,6 +980,8 @@ function applyLanguage(){
 
   $all('[data-i18n]').forEach(function(n){ n.textContent = T(n.getAttribute('data-i18n')); });
   $all('[data-i18n-html]').forEach(function(n){ n.innerHTML = T(n.getAttribute('data-i18n-html')); });
+  /* द्विभाषी — मराठी + English एकत्र */
+  $all('[data-i18n-bi]').forEach(function(n){ n.innerHTML = TB(n.getAttribute('data-i18n-bi')); });
   $all('[data-i18n-ph]').forEach(function(n){ n.setAttribute('placeholder', T(n.getAttribute('data-i18n-ph'))); });
   $all('[data-i18n-aria]').forEach(function(n){ n.setAttribute('aria-label', T(n.getAttribute('data-i18n-aria'))); });
   $all('[data-i18n-title]').forEach(function(n){ n.setAttribute('title', T(n.getAttribute('data-i18n-title'))); });
@@ -1368,7 +1390,7 @@ function fmtDistance(km){
    List screen — search + filters + cards
    ===================================================================== */
 function typeLabel(t){
-  return T(t.type === 'ladies' ? 'type.ladies' : t.type === 'gents' ? 'type.gents' : 'type.both');
+  return TB(t.type === 'ladies' ? 'type.ladies' : t.type === 'gents' ? 'type.gents' : 'type.both');
 }
 function visibleToilets(){
   var q = state.query.trim().toLowerCase();
@@ -1410,23 +1432,23 @@ function renderCards(){
           (enName(t) ? '<div class="name-en">' + esc(enName(t)) + '</div>' : '') +
           '<p class="area">📍 <span class="area-mr">' + esc(t.area) + '</span>' +
             (enArea(t) ? '<span class="area-en"> · ' + esc(enArea(t)) + '</span>' : '') +
-            ' · ' + esc(dataText(t.timing || '')) + '</p>' +
+            ' · ' + biData(t.timing || '') + '</p>' +
         '</div>' +
-        '<span class="status' + (t.open ? '' : ' closed') + '">' + esc(T(t.open ? 'card.open' : 'card.closed')) + '</span>' +
+        '<span class="status' + (t.open ? '' : ' closed') + '">' + TB(t.open ? 'card.open' : 'card.closed') + '</span>' +
       '</div>' +
       '<div class="meta">' +
         (d ? '<span class="pill dist">🚶 ' + esc(d) + '</span>' : '') +
         '<span class="pill star">★ ' + t.rating.toFixed(1) + ' (' + t.votes + ')</span>' +
-        '<span class="pill">' + esc(typeLabel(t)) + '</span>' +
-        (t.divyang ? '<span class="pill">' + esc(T('card.divyang')) + '</span>' : '') +
+        '<span class="pill">' + typeLabel(t) + '</span>' +
+        (t.divyang ? '<span class="pill">' + TB('card.divyang') + '</span>' : '') +
       '</div>' +
       '<div class="facilities">' +
-        (t.facilities || []).map(function(f){ return '<span class="fac">' + esc(dataText(f)) + '</span>'; }).join('') +
+        (t.facilities || []).map(function(f){ return '<span class="fac">' + biData(f) + '</span>'; }).join('') +
       '</div>' +
       '<div class="actions">' +
-        '<button class="primary" data-act="nav" data-id="' + t.id + '">' + esc(T('card.nav')) + '</button>' +
-        '<button data-act="rate" data-id="' + t.id + '">' + esc(T('card.rate')) + '</button>' +
-        '<button class="wa" data-act="share" data-id="' + t.id + '">' + esc(T('card.share')) + '</button>' +
+        '<button class="primary" data-act="nav" data-id="' + t.id + '">' + TB('card.nav') + '</button>' +
+        '<button data-act="rate" data-id="' + t.id + '">' + TB('card.rate') + '</button>' +
+        '<button class="wa" data-act="share" data-id="' + t.id + '">' + TB('card.share') + '</button>' +
       '</div>' +
     '</article>';
   }).join('');
@@ -1657,8 +1679,8 @@ function addToiletMarker(t){
     '<div class="popup">' +
       '<h4>' + esc(t.name) + '</h4>' +
       '<p>📍 ' + esc(t.area) + (d ? ' · ' + esc(d) : '') + '<br>' +
-      '★ ' + t.rating.toFixed(1) + ' · ' + esc(T(t.open ? 'card.open' : 'card.closed')) + ' · ' + esc(typeLabel(t)) + '</p>' +
-      '<button onclick="navigateToId(\'' + t.id + '\')">' + esc(T('map.showRoute')) + '</button>' +
+      '★ ' + t.rating.toFixed(1) + ' · ' + TB(t.open ? 'card.open' : 'card.closed') + ' · ' + typeLabel(t) + '</p>' +
+      '<button onclick="navigateToId(\'' + t.id + '\')">' + TB('map.showRoute') + '</button>' +
     '</div>';
   L.marker([t.lat, t.lng], { icon: toiletIcon }).bindPopup(html).addTo(markerLayer);
 }
