@@ -248,12 +248,39 @@ a{color:var(--brand)}
 .cmp .when{font-size:11.5px;color:var(--muted)}
 .cmp img{width:100%;max-height:200px;object-fit:cover;border-radius:11px;margin-top:8px}
 
-.admin-row{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);
+.admin-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);
   border-radius:13px;padding:11px 13px;margin-bottom:9px;box-shadow:var(--shadow)}
-.admin-row .info{flex:1;min-width:0}
+.admin-row .info{flex:1 1 150px;min-width:0}
 .admin-row .info b{font-size:14.5px}
 .admin-row .info span{display:block;font-size:12px;color:var(--muted)}
+.admin-row .acts{display:flex;gap:8px;flex-wrap:wrap;margin-inline-start:auto}
 .toggle{padding:7px 12px;border-radius:9px;font-size:12.5px;font-weight:800;border:1px solid var(--line);background:var(--bg-soft)}
+.toggle.qr{color:var(--info);border-color:var(--info)}
+
+/* ============ QR कोड ============ */
+.qr-notice{
+  display:flex;gap:10px;align-items:flex-start;margin-bottom:16px;padding:12px 13px;
+  border-radius:14px;background:var(--brand-soft);border:1px solid var(--brand);
+  color:var(--brand-ink);box-shadow:var(--shadow);animation:fade .22s ease;
+}
+:root[data-theme="dark"] .qr-notice{color:var(--brand)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .qr-notice{color:var(--brand)}}
+.qr-notice .qi{font-size:19px;flex:0 0 auto;line-height:1.25}
+.qr-notice .txt{flex:1;min-width:0}
+.qr-notice b{display:block;font-size:14.5px}
+.qr-notice small{font-size:12px;opacity:.85}
+.qr-notice .x{flex:0 0 auto;color:inherit;opacity:.65;font-size:15px;padding:0 2px}
+
+.qr-modal .sheet{text-align:center;max-height:92vh;overflow-y:auto}
+.qr-card{
+  background:#fff;border:1px solid var(--line);border-radius:16px;
+  padding:14px;margin:0 auto 12px;max-width:288px;
+}
+.qr-card img{width:100%;max-width:250px;display:block;margin:0 auto}
+.qr-card .qr-status{font-size:12.5px;color:#5b6b7a;margin:8px 0 0}
+.qr-link{font-size:11.5px;color:var(--muted);word-break:break-all;direction:ltr;margin-bottom:14px}
+.qr-actions{display:flex;gap:9px}
+.qr-actions .btn{margin:0}
 
 /* ============ Bottom nav ============ */
 .nav{
@@ -345,6 +372,15 @@ a{color:var(--brand)}
 <main class="screen" id="screen-complaint">
   <h2 style="font-size:19px;margin-bottom:4px">तक्रार नोंदवा</h2>
   <p class="hint" style="margin-bottom:16px">तुमची तक्रार थेट महानगरपालिकेकडे पोहोचते. नोंद केल्यावर <b>+10 गुण</b> मिळतात.</p>
+
+  <div class="qr-notice" id="qrNotice" hidden>
+    <span class="qi">✅</span>
+    <span class="txt">
+      <b id="qrNoticeName"></b>
+      <small id="qrNoticeArea"></small>
+    </span>
+    <button class="x" id="qrNoticeClose" type="button" aria-label="सूचना बंद करा">✕</button>
+  </div>
 
   <div class="field">
     <label for="cToilet">टॉयलेट निवडा</label>
@@ -483,6 +519,27 @@ a{color:var(--brand)}
   </div>
 </div>
 
+<!-- ================= QR कोड sheet ================= -->
+<div class="modal qr-modal" id="qrModal">
+  <div class="sheet">
+    <h3 id="qrTitle">QR कोड</h3>
+    <p class="sub" id="qrSub"></p>
+    <div class="qr-card">
+      <img id="qrImg" alt="QR कोड">
+      <p class="qr-status" id="qrStatus" hidden></p>
+    </div>
+    <p class="qr-link" id="qrLink"></p>
+    <p class="hint" id="qrWarn" hidden style="margin-bottom:14px">
+      ⚠️ ॲप सध्या स्थानिक फाइलवरून चालू आहे — Netlify वर प्रकाशित केल्यावरच हा QR मोबाइलवर उघडेल.
+    </p>
+    <div class="qr-actions">
+      <button class="btn" id="qrDownload">⬇️ डाउनलोड</button>
+      <button class="btn ghost" id="qrPrint">🖨️ प्रिंट</button>
+    </div>
+    <button class="btn ghost" id="qrClose" style="margin-top:9px">बंद करा</button>
+  </div>
+</div>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -506,6 +563,13 @@ var LS = {
 var ADMIN_PASSWORD = 'admin123';
 var PTS = { rating:5, complaint:10, resolved:15 };
 var AHILYANAGAR = [19.0948, 74.7480];
+
+/* ---------- QR कोड ----------
+   QR_BASE_URL रिकामे ठेवल्यास ॲप ज्या पत्त्यावर चालू आहे तोच पत्ता QR मध्ये जातो
+   (Netlify वर चढवल्यावर आपोआप बरोबर पत्ता येतो).
+   ठराविक पत्ता हवा असल्यास येथे लिहा — उदा. 'https://toilet-seva.netlify.app/' */
+var QR_BASE_URL = '';
+var QR_API = 'https://api.qrserver.com/v1/create-qr-code/';
 
 /* ---------- 10 नमुना टॉयलेट (अहिल्यानगर) ---------- */
 var SEED_TOILETS = [
@@ -557,8 +621,23 @@ var state = {
   adminTab: 'complaints',
   rateTarget: null,
   rateValue: 0,
-  photo: null
+  photo: null,
+  /* QR कोड ने आलेला ?complaint=<id> — यादी येईपर्यंत प्रतीक्षेत राहतो */
+  pendingToiletId: readComplaintParam(),
+  qrToiletId: ''
 };
+
+/* URL मधील ?complaint=<toilet-id> वाचा */
+function readComplaintParam(){
+  var raw = '';
+  try {
+    raw = new URLSearchParams(location.search).get('complaint') || '';
+  } catch(e){
+    var m = location.search.match(/[?&]complaint=([^&]*)/);
+    raw = m ? decodeURIComponent(m[1].replace(/\+/g, ' ')) : '';
+  }
+  return raw.trim();
+}
 
 function load(key, fallback){
   try {
@@ -1168,10 +1247,56 @@ function updateMeMarker(){
    ===================================================================== */
 function fillToiletSelect(){
   var sel = $('#cToilet');
+  /* क्लाउडवरून यादी पुन्हा आल्यावरही आधीची निवड टिकली पाहिजे */
+  var keep = state.qrToiletId || sel.value;
   sel.innerHTML = state.toilets.map(function(t){
-    return '<option value="' + t.id + '">' + esc(t.name) + ' — ' + esc(t.area) + '</option>';
+    return '<option value="' + esc(t.id) + '">' + esc(t.name) + ' — ' + esc(t.area) + '</option>';
   }).join('');
+  if (keep) selectToiletValue(sel, keep);
+  applyQrDeepLink();
 }
+
+function selectToiletValue(sel, id){
+  for (var i = 0; i < sel.options.length; i++){
+    if (sel.options[i].value === id){ sel.selectedIndex = i; return true; }
+  }
+  return false;
+}
+
+/* QR मध्ये पूर्ण आयडी (t5) किंवा फक्त आकडा (5) — दोन्ही चालतात */
+function findToiletByParam(raw){
+  if (!raw) return null;
+  var key = String(raw).trim();
+  var hit = state.toilets.filter(function(t){ return String(t.id) === key; })[0];
+  if (!hit && /^\d+$/.test(key)){
+    hit = state.toilets.filter(function(t){ return String(t.id) === 't' + key; })[0];
+  }
+  return hit || null;
+}
+
+/* ?complaint=<id> ने आलेले टॉयलेट निवडा व सूचना दाखवा */
+function applyQrDeepLink(){
+  if (!state.pendingToiletId) return;
+  var t = findToiletByParam(state.pendingToiletId);
+  /* टॉयलेट अजून क्लाउडवरून आलेले नसेल — यादी आल्यावर पुन्हा प्रयत्न होतो */
+  if (!t) return;
+
+  state.pendingToiletId = '';
+  state.qrToiletId = t.id;
+  selectToiletValue($('#cToilet'), t.id);
+
+  $('#qrNoticeName').textContent = 'शौचालय निवडले: ' + t.name;
+  $('#qrNoticeArea').textContent = t.area + ' · QR कोड स्कॅन करून निवडले गेले';
+  $('#qrNotice').hidden = false;
+  toast('शौचालय निवडले: ' + t.name);
+}
+
+/* वापरकर्त्याने स्वतः दुसरे टॉयलेट निवडल्यास QR ची निवड सोडून द्या */
+$('#cToilet').addEventListener('change', function(){
+  state.qrToiletId = '';
+  $('#qrNotice').hidden = true;
+});
+$('#qrNoticeClose').addEventListener('click', function(){ $('#qrNotice').hidden = true; });
 
 /* --- Voice --- */
 var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -1474,9 +1599,12 @@ function renderAdmin(){
   $('#tab-toilets').innerHTML = state.toilets.map(function(t){
     return '<div class="admin-row">' +
       '<div class="info"><b>' + esc(t.name) + '</b><span>' + esc(t.area) + ' · ★ ' + t.rating.toFixed(1) + '</span></div>' +
-      '<button class="toggle" data-toggle="' + t.id + '" style="color:' + (t.open ? 'var(--ok)' : 'var(--danger)') + '">' +
-        (t.open ? 'चालू' : 'बंद') + '</button>' +
-      '<button class="toggle" data-del="' + t.id + '" style="color:var(--danger)">काढा</button>' +
+      '<div class="acts">' +
+        '<button class="toggle qr" data-qr="' + esc(t.id) + '">📱 QR कोड</button>' +
+        '<button class="toggle" data-toggle="' + esc(t.id) + '" style="color:' + (t.open ? 'var(--ok)' : 'var(--danger)') + '">' +
+          (t.open ? 'चालू' : 'बंद') + '</button>' +
+        '<button class="toggle" data-del="' + esc(t.id) + '" style="color:var(--danger)">काढा</button>' +
+      '</div>' +
     '</div>';
   }).join('');
 }
@@ -1505,8 +1633,14 @@ $('#tab-complaints').addEventListener('click', function(e){
 });
 
 $('#tab-toilets').addEventListener('click', function(e){
+  var qr = e.target.closest('button[data-qr]');
   var tg = e.target.closest('button[data-toggle]');
   var dl = e.target.closest('button[data-del]');
+  if (qr){
+    var qt = state.toilets.filter(function(x){ return x.id === qr.dataset.qr; })[0];
+    if (qt) openQr(qt);
+    return;
+  }
   if (tg){
     var t = state.toilets.filter(function(x){ return x.id === tg.dataset.toggle; })[0];
     if (t){
@@ -1583,6 +1717,126 @@ $('#addToilet').addEventListener('click', function(){
 });
 
 /* =====================================================================
+   QR कोड — प्रत्येक टॉयलेटसाठी वेगळा कोड (प्रशासन)
+   ===================================================================== */
+var qrTarget = null;
+
+/* ॲप जिथे चालू आहे तोच पत्ता वापरा — QR_BASE_URL दिल्यास तो प्राधान्याने */
+function appBaseUrl(){
+  if (QR_BASE_URL) return QR_BASE_URL.replace(/\/+$/, '') + '/';
+  if (location.protocol === 'file:') return '';   /* स्थानिक फाइल — QR चालणार नाही */
+  return location.origin + location.pathname.replace(/[^/]*$/, '');
+}
+function toiletQrUrl(id){
+  return appBaseUrl() + '?complaint=' + encodeURIComponent(id);
+}
+function qrImageUrl(data, size){
+  return QR_API + '?size=' + size + 'x' + size +
+         '&margin=12&ecc=M&format=png&data=' + encodeURIComponent(data);
+}
+function qrFileName(t){
+  return ('QR-' + t.name + '-' + t.id).replace(/[\\/:*?"<>|]+/g, '-').slice(0, 90) + '.png';
+}
+
+function openQr(t){
+  qrTarget = t;
+  var link = toiletQrUrl(t.id);
+  $('#qrTitle').textContent = t.name;
+  $('#qrSub').textContent = t.area + ' · आयडी: ' + t.id;
+  $('#qrLink').textContent = link;
+  $('#qrWarn').hidden = !!appBaseUrl();
+
+  var img = $('#qrImg');
+  img.alt = t.name + ' — तक्रारीसाठी QR कोड';
+  img.removeAttribute('src');           /* आधीचा कोड क्षणभरही दिसू नये */
+  $('#qrStatus').textContent = 'QR कोड तयार होत आहे…';
+  $('#qrStatus').hidden = false;
+  img.src = qrImageUrl(link, 300);
+
+  $('#qrModal').classList.add('show');
+}
+
+$('#qrImg').addEventListener('load', function(){ $('#qrStatus').hidden = true; });
+$('#qrImg').addEventListener('error', function(){
+  $('#qrStatus').hidden = false;
+  $('#qrStatus').textContent = 'QR कोड मिळाला नाही — इंटरनेट तपासा.';
+});
+
+$('#qrClose').addEventListener('click', function(){ $('#qrModal').classList.remove('show'); });
+$('#qrModal').addEventListener('click', function(e){
+  if (e.target === $('#qrModal')) $('#qrModal').classList.remove('show');
+});
+
+/* डाउनलोड — blob म्हणून घेतो, न जमल्यास नवीन टॅबमध्ये उघडतो */
+$('#qrDownload').addEventListener('click', function(){
+  if (!qrTarget) return;
+  var t = qrTarget;
+  var src = qrImageUrl(toiletQrUrl(t.id), 600);
+  toast('QR कोड डाउनलोड होत आहे…');
+
+  fetch(src, { mode:'cors' }).then(function(res){
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.blob();
+  }).then(function(blob){
+    var obj = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = obj;
+    a.download = qrFileName(t);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(obj); }, 5000);
+    toast('QR कोड डाउनलोड झाला ✅');
+  }).catch(function(err){
+    console.warn('QR डाउनलोड अयशस्वी:', err);
+    window.open(src, '_blank', 'noopener');
+    toast('QR नवीन टॅबमध्ये उघडला — दाबून सेव्ह करा');
+  });
+});
+
+/* प्रिंट — भिंतीवर लावण्यासाठी तयार पोस्टर */
+$('#qrPrint').addEventListener('click', function(){
+  if (!qrTarget) return;
+  var t = qrTarget;
+  var link = toiletQrUrl(t.id);
+  var win = window.open('', '_blank');
+  if (!win){ toast('प्रिंटसाठी पॉपअपला परवानगी द्या'); return; }
+
+  win.document.write(
+    '<!DOCTYPE html><html lang="mr"><head><meta charset="UTF-8">' +
+    '<title>QR — ' + esc(t.name) + '</title><style>' +
+    '@page{size:A4;margin:14mm}' +
+    'body{font-family:"Noto Sans Devanagari","Nirmala UI",sans-serif;margin:0;padding:18px;' +
+      'text-align:center;color:#101820;background:#fff}' +
+    '.wrap{border:3px solid #0e7c5a;border-radius:18px;padding:26px 20px;max-width:520px;margin:0 auto}' +
+    '.top{font-size:15px;font-weight:700;color:#0a5f45}' +
+    'h1{font-size:30px;margin:6px 0 2px;color:#0e7c5a}' +
+    '.tag{font-size:14px;color:#5b6b7a;margin-bottom:18px}' +
+    'img{width:270px;height:270px;display:block;margin:0 auto 16px}' +
+    'h2{font-size:20px;margin:0 0 3px}' +
+    '.area{font-size:14px;color:#5b6b7a;margin-bottom:16px}' +
+    '.cta{font-size:16.5px;font-weight:700;line-height:1.5;background:#e4f5ee;' +
+      'border-radius:12px;padding:12px 10px;margin-bottom:12px}' +
+    '.url{font-size:10.5px;color:#5b6b7a;word-break:break-all;direction:ltr}' +
+    '</style></head><body><div class="wrap">' +
+      '<div class="top">अहिल्यानगर महानगरपालिका</div>' +
+      '<h1>टॉयलेट सेवा</h1>' +
+      '<div class="tag">स्वच्छतेची तक्रार — थेट महानगरपालिकेकडे</div>' +
+      '<img src="' + esc(qrImageUrl(link, 600)) + '" alt="QR कोड">' +
+      '<h2>' + esc(t.name) + '</h2>' +
+      '<div class="area">' + esc(t.area) + '</div>' +
+      '<div class="cta">📱 अस्वच्छता किंवा समस्या असल्यास<br>हा QR कोड स्कॅन करून तक्रार नोंदवा</div>' +
+      '<div class="url">' + esc(link) + '</div>' +
+    '</div><scr' + 'ipt>' +
+      'var i=document.images[0];' +
+      'function go(){setTimeout(function(){window.focus();window.print();},300);}' +
+      'if(i.complete)go();else{i.onload=go;i.onerror=go;}' +
+    '</scr' + 'ipt></body></html>'
+  );
+  win.document.close();
+});
+
+/* =====================================================================
    Navigation
    ===================================================================== */
 var SCREENS = ['list','map','complaint','admin'];
@@ -1623,6 +1877,19 @@ setAdminUI();
 initFirebase();
 startTracking();
 if (location.hash) showScreen(location.hash.slice(1), true);
+
+/* QR कोड स्कॅन करून आलेला वापरकर्ता — थेट तक्रार स्क्रीन उघडा */
+if (state.pendingToiletId || state.qrToiletId){
+  showScreen('complaint');
+  applyQrDeepLink();
+  /* यादी क्लाउडवरून येईपर्यंत थांबा — तरीही न सापडल्यास कळवा */
+  setTimeout(function(){
+    if (state.pendingToiletId){
+      state.pendingToiletId = '';
+      toast('QR मधील शौचालय सापडले नाही — यादीतून निवडा');
+    }
+  }, 8000);
+}
 
 if ('serviceWorker' in navigator){
   window.addEventListener('load', function(){

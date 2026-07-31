@@ -4,7 +4,7 @@
    App shell: cache-first  |  नकाशा टाइल्स: stale-while-revalidate
    ===================================================================== */
 
-var VERSION    = 'v2.1.0-firebase';
+var VERSION    = 'v2.2.0-qr';
 var SHELL_CACHE = 'toilet-seva-shell-' + VERSION;
 var TILE_CACHE  = 'toilet-seva-tiles-' + VERSION;
 var LIB_CACHE   = 'toilet-seva-lib-'  + VERSION;
