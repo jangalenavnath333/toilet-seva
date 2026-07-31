@@ -73,25 +73,9 @@ a{color:var(--brand)}
   width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.18);
   border:1px solid rgba(255,255,255,.28); display:grid;place-items:center;font-size:17px;color:#fff;
 }
-.lang-btn{
-  display:flex;align-items:center;gap:5px;flex:0 0 auto;color:#fff;
-  background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.28);
-  padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700;line-height:1;
-}
-.lang-btn .sep{opacity:.45;font-weight:400}
-.lang-btn span{opacity:.55;transition:.15s}
-.lang-btn .sep{opacity:.4}
-:root[data-lang="mr"] .lang-btn .mr,
-:root[data-lang="en"] .lang-btn .en{opacity:1;text-decoration:underline;text-underline-offset:3px}
-/* अरुंद फोन — भाषा बटणासाठी जागा करून शीर्षक वाचनीय ठेवा */
-@media (max-width:400px){
-  .appbar{gap:7px;padding-inline:10px}
-  .appbar h1{font-size:16.5px}
-  .appbar .sub{display:none}
-  .appbar .logo{width:34px;height:34px}
-  .lang-btn{padding:5px 7px;font-size:10.5px;gap:2px}
-  .points-badge{padding:5px 8px;font-size:13px}
-  .icon-btn{width:33px;height:33px;font-size:15px}
+@media (max-width:360px){
+  .appbar{gap:8px;padding-inline:11px}
+  .appbar h1{font-size:17px}
 }
 
 /* ============ GPS strip ============ */
@@ -151,7 +135,11 @@ a{color:var(--brand)}
 }
 .card-head{display:flex;gap:10px;align-items:flex-start}
 .card-head h3{font-size:16.5px;font-weight:800;flex:1;min-width:0}
+/* नाव मराठीत ठळक, खाली इंग्रजी नाव लहान व फिकट */
+.card .name-mr{font-size:16.5px;font-weight:800;line-height:1.3}
+.card .name-en{font-size:13px;font-weight:600;color:var(--muted);line-height:1.35;margin-top:1px}
 .card .area{margin:3px 0 0;font-size:13px;color:var(--muted)}
+.card .area-en{opacity:.8}
 .status{
   flex:0 0 auto;font-size:11.5px;font-weight:800;padding:4px 10px;border-radius:999px;
   background:rgba(22,163,74,.14);color:var(--ok);
@@ -346,9 +334,6 @@ a{color:var(--brand)}
     <h1 data-i18n="app.title">टॉयलेट सेवा</h1>
     <div class="sub" data-i18n="app.sub">अहिल्यानगर महानगरपालिका</div>
   </div>
-  <button class="lang-btn" id="langBtn" data-i18n-aria="app.lang" aria-label="भाषा बदला">
-    <span class="mr">मराठी</span><span class="sep">|</span><span class="en">English</span>
-  </button>
   <div class="points-badge" id="pointsBadge" data-i18n-title="app.points" title="नागरिक गुण">🏆 <span id="pointsVal">0</span></div>
   <button class="icon-btn" id="themeBtn" data-i18n-aria="app.theme" aria-label="डार्क मोड बदला">🌙</button>
 </header>
@@ -873,6 +858,31 @@ var DATA_EN = {
   'सकाळी':'', 'रात्री':'', '24 तास':'24 hours'
 };
 
+/* क्लाउडवरील जुन्या नोंदींना englishName / englishArea नसते —
+   नावावरून जुळवणी करून तरीही इंग्रजी नाव दाखवता येते */
+var EN_NAMES = {
+  'सुलभ शौचालय, तारकपूर बस स्थानक':'Sulabh Toilet, Tarakpur Bus Stand',
+  'सार्वजनिक शौचालय, मार्केट यार्ड':'Public Toilet, Market Yard',
+  'रेल्वे स्थानक शौचालय':'Railway Station Toilet',
+  'महिला स्वच्छतागृह, दिल्ली गेट':"Women's Toilet, Delhi Gate",
+  'सार्वजनिक शौचालय, चितळे रोड':'Public Toilet, Chitale Road',
+  'वाडिया पार्क शौचालय':'Wadia Park Toilet',
+  'सुलभ शौचालय, सावेडी नाका':'Sulabh Toilet, Savedi Naka',
+  'भिंगार बाजारपेठ शौचालय':'Bhingar Market Toilet',
+  'किल्ला परिसर शौचालय':'Fort Area Toilet',
+  'महिला शौचालय, केडगाव देवी':"Women's Toilet, Kedgaon Devi"
+};
+var EN_AREAS = {
+  'तारकपूर':'Tarakpur', 'नागापूर':'Nagapur', 'रेल्वे स्टेशन रोड':'Railway Station Road',
+  'दिल्ली गेट':'Delhi Gate', 'चितळे रोड':'Chitale Road', 'वाडिया पार्क':'Wadia Park',
+  'सावेडी':'Savedi', 'भिंगार':'Bhingar', 'अहमदनगर किल्ला':'Ahmednagar Fort',
+  'केडगाव':'Kedgaon'
+};
+
+/* नोंदीतले इंग्रजी नाव, नसल्यास तक्त्यातून — दोन्ही नसल्यास रिकामे */
+function enName(t){ return t.englishName || EN_NAMES[t.name] || ''; }
+function enArea(t){ return t.englishArea || EN_AREAS[t.area] || ''; }
+
 function dataText(s){
   if (state.lang !== 'en' || !s) return s;
   if (DATA_EN[s]) return DATA_EN[s];
@@ -939,34 +949,34 @@ function applyLanguage(){
 
 /* ---------- 10 नमुना टॉयलेट (अहिल्यानगर) ---------- */
 var SEED_TOILETS = [
-  { id:'t1', name:'सुलभ शौचालय, तारकपूर बस स्थानक', area:'तारकपूर', lat:19.0862, lng:74.7386,
+  { id:'t1', name:'सुलभ शौचालय, तारकपूर बस स्थानक', englishName:'Sulabh Toilet, Tarakpur Bus Stand', area:'तारकपूर', englishArea:'Tarakpur', lat:19.0862, lng:74.7386,
     type:'both', divyang:true, open:true, rating:4.3, votes:52, timing:'सकाळी 5 – रात्री 11',
     facilities:['पाणी','वीज','सॅनिटरी पॅड','दिव्यांग रॅम्प'] },
-  { id:'t2', name:'सार्वजनिक शौचालय, मार्केट यार्ड', area:'नागापूर', lat:19.0701, lng:74.7182,
+  { id:'t2', name:'सार्वजनिक शौचालय, मार्केट यार्ड', englishName:'Public Toilet, Market Yard', area:'नागापूर', englishArea:'Nagapur', lat:19.0701, lng:74.7182,
     type:'both', divyang:false, open:true, rating:3.6, votes:31, timing:'सकाळी 6 – रात्री 10',
     facilities:['पाणी','वीज'] },
-  { id:'t3', name:'रेल्वे स्थानक शौचालय', area:'रेल्वे स्टेशन रोड', lat:19.0817, lng:74.7215,
+  { id:'t3', name:'रेल्वे स्थानक शौचालय', englishName:'Railway Station Toilet', area:'रेल्वे स्टेशन रोड', englishArea:'Railway Station Road', lat:19.0817, lng:74.7215,
     type:'both', divyang:true, open:true, rating:4.0, votes:74, timing:'24 तास',
     facilities:['पाणी','वीज','दिव्यांग रॅम्प','स्वच्छता कर्मचारी'] },
-  { id:'t4', name:'महिला स्वच्छतागृह, दिल्ली गेट', area:'दिल्ली गेट', lat:19.0946, lng:74.7452,
+  { id:'t4', name:'महिला स्वच्छतागृह, दिल्ली गेट', englishName:"Women's Toilet, Delhi Gate", area:'दिल्ली गेट', englishArea:'Delhi Gate', lat:19.0946, lng:74.7452,
     type:'ladies', divyang:true, open:true, rating:4.6, votes:47, timing:'सकाळी 6 – रात्री 9',
     facilities:['पाणी','वीज','सॅनिटरी पॅड','हिरकणी कक्ष'] },
-  { id:'t5', name:'सार्वजनिक शौचालय, चितळे रोड', area:'चितळे रोड', lat:19.0938, lng:74.7401,
+  { id:'t5', name:'सार्वजनिक शौचालय, चितळे रोड', englishName:'Public Toilet, Chitale Road', area:'चितळे रोड', englishArea:'Chitale Road', lat:19.0938, lng:74.7401,
     type:'both', divyang:false, open:false, rating:2.8, votes:23, timing:'सकाळी 7 – रात्री 8',
     facilities:['पाणी'] },
-  { id:'t6', name:'वाडिया पार्क शौचालय', area:'वाडिया पार्क', lat:19.0975, lng:74.7368,
+  { id:'t6', name:'वाडिया पार्क शौचालय', englishName:'Wadia Park Toilet', area:'वाडिया पार्क', englishArea:'Wadia Park', lat:19.0975, lng:74.7368,
     type:'both', divyang:true, open:true, rating:4.4, votes:66, timing:'सकाळी 5 – रात्री 10',
     facilities:['पाणी','वीज','दिव्यांग रॅम्प','बेबी केअर'] },
-  { id:'t7', name:'सुलभ शौचालय, सावेडी नाका', area:'सावेडी', lat:19.1092, lng:74.7395,
+  { id:'t7', name:'सुलभ शौचालय, सावेडी नाका', englishName:'Sulabh Toilet, Savedi Naka', area:'सावेडी', englishArea:'Savedi', lat:19.1092, lng:74.7395,
     type:'both', divyang:false, open:true, rating:3.9, votes:38, timing:'सकाळी 6 – रात्री 10',
     facilities:['पाणी','वीज'] },
-  { id:'t8', name:'भिंगार बाजारपेठ शौचालय', area:'भिंगार', lat:19.1512, lng:74.7825,
+  { id:'t8', name:'भिंगार बाजारपेठ शौचालय', englishName:'Bhingar Market Toilet', area:'भिंगार', englishArea:'Bhingar', lat:19.1512, lng:74.7825,
     type:'both', divyang:false, open:true, rating:3.2, votes:19, timing:'सकाळी 6 – रात्री 9',
     facilities:['पाणी'] },
-  { id:'t9', name:'किल्ला परिसर शौचालय', area:'अहमदनगर किल्ला', lat:19.0983, lng:74.7588,
+  { id:'t9', name:'किल्ला परिसर शौचालय', englishName:'Fort Area Toilet', area:'अहमदनगर किल्ला', englishArea:'Ahmednagar Fort', lat:19.0983, lng:74.7588,
     type:'both', divyang:true, open:true, rating:4.1, votes:29, timing:'सकाळी 8 – संध्याकाळी 6',
     facilities:['पाणी','वीज','दिव्यांग रॅम्प'] },
-  { id:'t10', name:'महिला शौचालय, केडगाव देवी', area:'केडगाव', lat:19.0602, lng:74.7318,
+  { id:'t10', name:'महिला शौचालय, केडगाव देवी', englishName:"Women's Toilet, Kedgaon Devi", area:'केडगाव', englishArea:'Kedgaon', lat:19.0602, lng:74.7318,
     type:'ladies', divyang:false, open:true, rating:3.7, votes:26, timing:'सकाळी 6 – रात्री 9',
     facilities:['पाणी','सॅनिटरी पॅड'] }
 ];
@@ -991,8 +1001,10 @@ var state = {
   /* QR कोड ने आलेला ?complaint=<id> — यादी येईपर्यंत प्रतीक्षेत राहतो */
   pendingToiletId: readComplaintParam(),
   qrToiletId: '',
-  /* भाषा — मराठी मूळ; localStorage मध्ये टिकते */
-  lang: (load(LS.lang, 'mr') === 'en' ? 'en' : 'mr'),
+  /* ॲपचा मजकूर मराठीतच. कार्डावर इंग्रजी नाव मराठीच्या खाली दाखवले जाते,
+     त्यामुळे भाषा टॉगलची गरज नाही. I18N चौकट तशीच ठेवली आहे — पुन्हा टॉगल
+     हवा असल्यास फक्त हेडरमधले बटण व हा 'mr' परत बदलावा लागेल. */
+  lang: 'mr',
   /* GPS पट्टीचा सध्याचा मजकूर — भाषा बदलल्यावर पुन्हा लिहिण्यासाठी */
   gpsKey: 'gps.searching',
   gpsVars: null,
@@ -1233,13 +1245,6 @@ function applyTheme(){
   var meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute('content', dark ? '#06090b' : '#0e7c5a');
 }
-$('#langBtn').addEventListener('click', function(){
-  state.lang = state.lang === 'mr' ? 'en' : 'mr';
-  save(LS.lang, state.lang);
-  applyLanguage();
-  toast(T('lang.changed'));
-});
-
 $('#themeBtn').addEventListener('click', function(){
   var next = currentTheme() === 'dark' ? 'light' : 'dark';
   save(LS.theme, next);
@@ -1360,8 +1365,11 @@ function renderCards(){
     return '<article class="card">' +
       '<div class="card-head">' +
         '<div style="flex:1;min-width:0">' +
-          '<h3>' + esc(t.name) + '</h3>' +
-          '<p class="area">📍 ' + esc(t.area) + ' · ' + esc(dataText(t.timing || '')) + '</p>' +
+          '<h3 class="name-mr">' + esc(t.name) + '</h3>' +
+          (enName(t) ? '<div class="name-en">' + esc(enName(t)) + '</div>' : '') +
+          '<p class="area">📍 <span class="area-mr">' + esc(t.area) + '</span>' +
+            (enArea(t) ? '<span class="area-en"> · ' + esc(enArea(t)) + '</span>' : '') +
+            ' · ' + esc(dataText(t.timing || '')) + '</p>' +
         '</div>' +
         '<span class="status' + (t.open ? '' : ' closed') + '">' + esc(T(t.open ? 'card.open' : 'card.closed')) + '</span>' +
       '</div>' +
