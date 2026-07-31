@@ -4,7 +4,7 @@
    App shell: cache-first  |  नकाशा टाइल्स: stale-while-revalidate
    ===================================================================== */
 
-var VERSION    = 'v2.3.0-marker';
+var VERSION    = 'v2.4.0-i18n';
 var SHELL_CACHE = 'toilet-seva-shell-' + VERSION;
 var TILE_CACHE  = 'toilet-seva-tiles-' + VERSION;
 var LIB_CACHE   = 'toilet-seva-lib-'  + VERSION;

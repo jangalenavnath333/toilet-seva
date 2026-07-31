@@ -60,7 +60,7 @@ a{color:var(--brand)}
   object-fit:contain; box-shadow:0 1px 4px rgba(0,0,0,.2);
 }
 .appbar .titles{flex:1;min-width:0}
-.appbar h1{font-size:19px;font-weight:800;letter-spacing:.2px}
+.appbar h1{font-size:19px;font-weight:800;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .appbar .sub{font-size:11.5px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .points-badge{
   display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.18);
@@ -72,6 +72,26 @@ a{color:var(--brand)}
 .icon-btn{
   width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.18);
   border:1px solid rgba(255,255,255,.28); display:grid;place-items:center;font-size:17px;color:#fff;
+}
+.lang-btn{
+  display:flex;align-items:center;gap:5px;flex:0 0 auto;color:#fff;
+  background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.28);
+  padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700;line-height:1;
+}
+.lang-btn .sep{opacity:.45;font-weight:400}
+.lang-btn span{opacity:.55;transition:.15s}
+.lang-btn .sep{opacity:.4}
+:root[data-lang="mr"] .lang-btn .mr,
+:root[data-lang="en"] .lang-btn .en{opacity:1;text-decoration:underline;text-underline-offset:3px}
+/* अरुंद फोन — भाषा बटणासाठी जागा करून शीर्षक वाचनीय ठेवा */
+@media (max-width:400px){
+  .appbar{gap:7px;padding-inline:10px}
+  .appbar h1{font-size:16.5px}
+  .appbar .sub{display:none}
+  .appbar .logo{width:34px;height:34px}
+  .lang-btn{padding:5px 7px;font-size:10.5px;gap:2px}
+  .points-badge{padding:5px 8px;font-size:13px}
+  .icon-btn{width:33px;height:33px;font-size:15px}
 }
 
 /* ============ GPS strip ============ */
@@ -321,36 +341,39 @@ a{color:var(--brand)}
 <body>
 
 <header class="appbar">
-  <img class="logo" id="palikaLogo" src="logo.png" alt="अहिल्यानगर महानगरपालिका" onerror="this.onerror=null;this.src='icon.svg'">
+  <img class="logo" id="palikaLogo" src="logo.png" data-i18n-alt="app.sub" alt="अहिल्यानगर महानगरपालिका" onerror="this.onerror=null;this.src='icon.svg'">
   <div class="titles">
-    <h1>टॉयलेट सेवा</h1>
-    <div class="sub">अहिल्यानगर महानगरपालिका</div>
+    <h1 data-i18n="app.title">टॉयलेट सेवा</h1>
+    <div class="sub" data-i18n="app.sub">अहिल्यानगर महानगरपालिका</div>
   </div>
-  <div class="points-badge" id="pointsBadge" title="नागरिक गुण">🏆 <span id="pointsVal">0</span></div>
-  <button class="icon-btn" id="themeBtn" aria-label="डार्क मोड बदला">🌙</button>
+  <button class="lang-btn" id="langBtn" data-i18n-aria="app.lang" aria-label="भाषा बदला">
+    <span class="mr">मराठी</span><span class="sep">|</span><span class="en">English</span>
+  </button>
+  <div class="points-badge" id="pointsBadge" data-i18n-title="app.points" title="नागरिक गुण">🏆 <span id="pointsVal">0</span></div>
+  <button class="icon-btn" id="themeBtn" data-i18n-aria="app.theme" aria-label="डार्क मोड बदला">🌙</button>
 </header>
 
 <div class="gps-strip" id="gpsStrip">
   <span class="gps-dot"></span>
   <span id="gpsText">स्थान शोधत आहे…</span>
-  <span class="sync" id="syncBadge" title="क्लाउड जोडणी">☁️ जोडत आहे…</span>
-  <button class="refresh" id="gpsRefresh">पुन्हा शोधा</button>
+  <span class="sync" id="syncBadge" data-i18n-title="gps.title" title="क्लाउड जोडणी">☁️ जोडत आहे…</span>
+  <button class="refresh" id="gpsRefresh" data-i18n="gps.refresh">पुन्हा शोधा</button>
 </div>
 
 <!-- ================= Screen 1 : यादी ================= -->
 <main class="screen active" id="screen-list">
   <div class="searchbar" id="searchWrap">
     <span class="si">🔍</span>
-    <input id="search" type="search" placeholder="नाव किंवा परिसर शोधा…" autocomplete="off" aria-label="शोधा">
-    <button class="clear" id="searchClear" aria-label="शोध पुसा">✕</button>
+    <input id="search" type="search" data-i18n-ph="list.searchPh" placeholder="नाव किंवा परिसर शोधा…" autocomplete="off" data-i18n-aria="list.searchAria" aria-label="शोधा">
+    <button class="clear" id="searchClear" data-i18n-aria="list.clearAria" aria-label="शोध पुसा">✕</button>
   </div>
 
-  <div class="chips" id="chips" role="group" aria-label="फिल्टर">
-    <button class="chip" data-filter="all" aria-pressed="true">सर्व</button>
-    <button class="chip" data-filter="ladies" aria-pressed="false">महिला</button>
-    <button class="chip" data-filter="divyang" aria-pressed="false">दिव्यांग</button>
-    <button class="chip" data-filter="open" aria-pressed="false">उपलब्ध</button>
-    <button class="chip" data-filter="top" aria-pressed="false">★★★★</button>
+  <div class="chips" id="chips" role="group" data-i18n-aria="list.filters" aria-label="फिल्टर">
+    <button class="chip" data-filter="all" aria-pressed="true" data-i18n="filter.all">सर्व</button>
+    <button class="chip" data-filter="ladies" aria-pressed="false" data-i18n="filter.ladies">महिला</button>
+    <button class="chip" data-filter="divyang" aria-pressed="false" data-i18n="filter.divyang">दिव्यांग</button>
+    <button class="chip" data-filter="open" aria-pressed="false" data-i18n="filter.open">उपलब्ध</button>
+    <button class="chip" data-filter="top" aria-pressed="false" data-i18n="filter.top">★★★★</button>
   </div>
 
   <div class="result-line" id="resultLine"></div>
@@ -361,16 +384,16 @@ a{color:var(--brand)}
 <main class="screen" id="screen-map">
   <div id="map"></div>
   <div class="map-legend">
-    <span><img src="icon.png" alt="">शौचालय</span>
-    <span><i style="background:#2563eb"></i>तुमचे स्थान</span>
-    <span>झूम आउट → क्लस्टर</span>
+    <span><img src="icon.svg" alt=""><span data-i18n="map.toilet">शौचालय</span></span>
+    <span><i style="background:#2563eb"></i><span data-i18n="map.me">तुमचे स्थान</span></span>
+    <span data-i18n="map.cluster">झूम आउट → क्लस्टर</span>
   </div>
 </main>
 
 <!-- ================= Screen 3 : तक्रार ================= -->
 <main class="screen" id="screen-complaint">
-  <h2 style="font-size:19px;margin-bottom:4px">तक्रार नोंदवा</h2>
-  <p class="hint" style="margin-bottom:16px">तुमची तक्रार थेट महानगरपालिकेकडे पोहोचते. नोंद केल्यावर <b>+10 गुण</b> मिळतात.</p>
+  <h2 style="font-size:19px;margin-bottom:4px" data-i18n="comp.title">तक्रार नोंदवा</h2>
+  <p class="hint" style="margin-bottom:16px" data-i18n-html="comp.intro">तुमची तक्रार थेट महानगरपालिकेकडे पोहोचते. नोंद केल्यावर <b>+10 गुण</b> मिळतात.</p>
 
   <div class="qr-notice" id="qrNotice" hidden>
     <span class="qi">✅</span>
@@ -378,143 +401,135 @@ a{color:var(--brand)}
       <b id="qrNoticeName"></b>
       <small id="qrNoticeArea"></small>
     </span>
-    <button class="x" id="qrNoticeClose" type="button" aria-label="सूचना बंद करा">✕</button>
+    <button class="x" id="qrNoticeClose" type="button" data-i18n-aria="qr.close" aria-label="सूचना बंद करा">✕</button>
   </div>
 
   <div class="field">
-    <label for="cToilet">टॉयलेट निवडा</label>
+    <label for="cToilet" data-i18n="comp.selectToilet">टॉयलेट निवडा</label>
     <select id="cToilet"></select>
   </div>
 
   <div class="field">
-    <label for="cType">तक्रारीचा प्रकार</label>
-    <select id="cType">
-      <option value="स्वच्छता नाही">स्वच्छता नाही</option>
-      <option value="पाणी नाही">पाणी नाही</option>
-      <option value="वीज / दिवे नाहीत">वीज / दिवे नाहीत</option>
-      <option value="दरवाजा / कुलूप तुटले">दरवाजा / कुलूप तुटले</option>
-      <option value="दुर्गंधी">दुर्गंधी</option>
-      <option value="बंद आहे">बंद आहे</option>
-      <option value="इतर">इतर</option>
-    </select>
+    <label for="cType" data-i18n="comp.type">तक्रारीचा प्रकार</label>
+    <select id="cType"></select>
   </div>
 
   <div class="field">
-    <label for="cText">तपशील — 🎤 दाबून मराठीत बोला</label>
+    <label for="cText" data-i18n="comp.detail">तपशील — 🎤 दाबून मराठीत बोला</label>
     <div class="voice-row">
-      <textarea id="cText" placeholder="काय समस्या आहे ते लिहा किंवा माइक दाबून बोला…"></textarea>
-      <button class="mic" id="micBtn" type="button" aria-label="आवाजाने तक्रार नोंदवा">🎤</button>
+      <textarea id="cText" data-i18n-ph="comp.textPh" placeholder="काय समस्या आहे ते लिहा किंवा माइक दाबून बोला…"></textarea>
+      <button class="mic" id="micBtn" type="button" data-i18n-aria="comp.micAria" aria-label="आवाजाने तक्रार नोंदवा">🎤</button>
     </div>
     <p class="hint" id="micHint">मराठी व्हॉइस टायपिंग (mr-IN) उपलब्ध आहे.</p>
   </div>
 
   <div class="field">
-    <label>फोटो जोडा <span style="font-weight:500;color:var(--muted)">(ऐच्छिक)</span></label>
+    <label><span data-i18n="comp.photo">फोटो जोडा</span> <span style="font-weight:500;color:var(--muted)" data-i18n="comp.optional">(ऐच्छिक)</span></label>
     <label class="photo-drop" for="cPhoto">
       <div class="big">📸</div>
-      <div style="font-weight:700;color:var(--text)">कॅमेरा उघडा किंवा फोटो निवडा</div>
-      <div style="font-size:12px">पुरावा असल्यास तक्रार लवकर सुटते</div>
+      <div style="font-weight:700;color:var(--text)" data-i18n="comp.photoCta">कॅमेरा उघडा किंवा फोटो निवडा</div>
+      <div style="font-size:12px" data-i18n="comp.photoHint">पुरावा असल्यास तक्रार लवकर सुटते</div>
     </label>
     <input id="cPhoto" type="file" accept="image/*" capture="environment" hidden>
     <div class="photo-preview" id="photoPreview">
-      <img id="photoImg" alt="जोडलेला फोटो">
-      <button type="button" id="photoRemove" aria-label="फोटो काढा">✕</button>
+      <img id="photoImg" alt="">
+      <button type="button" id="photoRemove" data-i18n-aria="comp.photoRemove" aria-label="फोटो काढा">✕</button>
     </div>
   </div>
 
-  <button class="btn" id="submitComplaint">तक्रार पाठवा</button>
-  <p class="hint" style="text-align:center;margin-top:10px">तक्रार सुटल्यावर तुम्हाला नोटिफिकेशन येईल <b>(+15 गुण)</b></p>
+  <button class="btn" id="submitComplaint" data-i18n="comp.submit">तक्रार पाठवा</button>
+  <p class="hint" style="text-align:center;margin-top:10px" data-i18n-html="comp.footer">तक्रार सुटल्यावर तुम्हाला नोटिफिकेशन येईल <b>(+15 गुण)</b></p>
 </main>
 
 <!-- ================= Screen 4 : प्रशासन ================= -->
 <main class="screen" id="screen-admin">
   <div id="adminLogin" class="login-box">
     <div class="lock">🔐</div>
-    <h2 style="font-size:19px;margin:8px 0 4px">प्रशासन लॉगिन</h2>
-    <p class="hint" style="margin-bottom:18px">फक्त महानगरपालिका अधिकाऱ्यांसाठी</p>
-    <div class="field"><input id="adminEmail" type="email" placeholder="ईमेल" autocomplete="username"></div>
-    <div class="field"><input id="adminPass" type="password" placeholder="पासवर्ड" autocomplete="current-password"></div>
-    <button class="btn" id="adminLoginBtn">लॉगिन करा</button>
+    <h2 style="font-size:19px;margin:8px 0 4px" data-i18n="admin.loginTitle">प्रशासन लॉगिन</h2>
+    <p class="hint" style="margin-bottom:18px" data-i18n="admin.loginSub">फक्त महानगरपालिका अधिकाऱ्यांसाठी</p>
+    <div class="field"><input id="adminEmail" type="email" data-i18n-ph="admin.email" placeholder="ईमेल" autocomplete="username"></div>
+    <div class="field"><input id="adminPass" type="password" data-i18n-ph="admin.pass" placeholder="पासवर्ड" autocomplete="current-password"></div>
+    <button class="btn" id="adminLoginBtn" data-i18n="admin.login">लॉगिन करा</button>
     <p class="hint" id="adminAuthNote" style="margin-top:12px">Firebase Auth ने पडताळणी होते.</p>
   </div>
 
   <div id="adminPanel" hidden>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
       <div style="flex:1;min-width:0">
-        <h2 style="font-size:19px">प्रशासन डॅशबोर्ड</h2>
+        <h2 style="font-size:19px" data-i18n="admin.dash">प्रशासन डॅशबोर्ड</h2>
         <div class="hint" id="adminWho" style="margin-top:0"></div>
       </div>
-      <button class="toggle" id="adminLogout">बाहेर पडा</button>
+      <button class="toggle" id="adminLogout" data-i18n="admin.logout">बाहेर पडा</button>
     </div>
 
     <div class="stats">
-      <div class="stat a"><div class="n" id="stTotal">0</div><div class="l">एकूण टॉयलेट</div></div>
-      <div class="stat b"><div class="n" id="stOpen">0</div><div class="l">प्रलंबित तक्रारी</div></div>
-      <div class="stat c"><div class="n" id="stRating">0.0</div><div class="l">सरासरी मानांकन</div></div>
-      <div class="stat d"><div class="n" id="stResolved">0</div><div class="l">आज सोडवलेल्या</div></div>
+      <div class="stat a"><div class="n" id="stTotal">0</div><div class="l" data-i18n="admin.stTotal">एकूण टॉयलेट</div></div>
+      <div class="stat b"><div class="n" id="stOpen">0</div><div class="l" data-i18n="admin.stOpen">प्रलंबित तक्रारी</div></div>
+      <div class="stat c"><div class="n" id="stRating">0.0</div><div class="l" data-i18n="admin.stRating">सरासरी मानांकन</div></div>
+      <div class="stat d"><div class="n" id="stResolved">0</div><div class="l" data-i18n="admin.stResolved">आज सोडवलेल्या</div></div>
     </div>
 
     <div class="chart">
-      <h4>📊 सर्वाधिक तक्रारींचे प्रकार</h4>
-      <div id="chartBars"><p class="hint">अद्याप तक्रारी नाहीत.</p></div>
+      <h4 data-i18n="admin.chart">📊 सर्वाधिक तक्रारींचे प्रकार</h4>
+      <div id="chartBars"><p class="hint" data-i18n="admin.noComplaints">अद्याप तक्रारी नाहीत.</p></div>
     </div>
 
     <div class="tabs" role="tablist">
-      <button role="tab" aria-selected="true" data-tab="complaints">तक्रारी</button>
-      <button role="tab" aria-selected="false" data-tab="toilets">टॉयलेट यादी</button>
-      <button role="tab" aria-selected="false" data-tab="add">नवीन नोंद</button>
+      <button role="tab" aria-selected="true" data-tab="complaints" data-i18n="admin.tabComplaints">तक्रारी</button>
+      <button role="tab" aria-selected="false" data-tab="toilets" data-i18n="admin.tabToilets">टॉयलेट यादी</button>
+      <button role="tab" aria-selected="false" data-tab="add" data-i18n="admin.tabAdd">नवीन नोंद</button>
     </div>
 
     <div id="tab-complaints"></div>
     <div id="tab-toilets" hidden></div>
 
     <div id="tab-add" hidden>
-      <div class="field"><label for="nName">टॉयलेटचे नाव</label><input id="nName" placeholder="उदा. सार्वजनिक शौचालय, गांधी मैदान"></div>
-      <div class="field"><label for="nArea">परिसर</label><input id="nArea" placeholder="उदा. सावेडी"></div>
+      <div class="field"><label for="nName" data-i18n="admin.nName">टॉयलेटचे नाव</label><input id="nName" data-i18n-ph="admin.nNamePh" placeholder="उदा. सार्वजनिक शौचालय, गांधी मैदान"></div>
+      <div class="field"><label for="nArea" data-i18n="admin.nArea">परिसर</label><input id="nArea" data-i18n-ph="admin.nAreaPh" placeholder="उदा. सावेडी"></div>
       <div class="row">
-        <div class="field"><label for="nLat">अक्षांश</label><input id="nLat" type="number" step="0.000001" placeholder="19.0948"></div>
-        <div class="field"><label for="nLng">रेखांश</label><input id="nLng" type="number" step="0.000001" placeholder="74.7480"></div>
+        <div class="field"><label for="nLat" data-i18n="admin.nLat">अक्षांश</label><input id="nLat" type="number" step="0.000001" placeholder="19.0948"></div>
+        <div class="field"><label for="nLng" data-i18n="admin.nLng">रेखांश</label><input id="nLng" type="number" step="0.000001" placeholder="74.7480"></div>
       </div>
-      <button class="btn ghost" id="useMyLoc" style="margin-bottom:14px">📍 माझे सध्याचे स्थान वापरा</button>
+      <button class="btn ghost" id="useMyLoc" style="margin-bottom:14px" data-i18n="admin.useLoc">📍 माझे सध्याचे स्थान वापरा</button>
       <div class="field">
-        <label for="nType">प्रकार</label>
+        <label for="nType" data-i18n="admin.nType">प्रकार</label>
         <select id="nType">
-          <option value="both">महिला + पुरुष</option>
-          <option value="ladies">फक्त महिला</option>
-          <option value="gents">फक्त पुरुष</option>
+          <option value="both" data-i18n="type.both">महिला + पुरुष</option>
+          <option value="ladies" data-i18n="type.ladies">फक्त महिला</option>
+          <option value="gents" data-i18n="type.gents">फक्त पुरुष</option>
         </select>
       </div>
       <div class="field">
-        <label><input type="checkbox" id="nDivyang" style="width:auto;margin-inline-end:8px">दिव्यांगांसाठी सोय आहे</label>
+        <label><input type="checkbox" id="nDivyang" style="width:auto;margin-inline-end:8px"><span data-i18n="admin.nDivyang">दिव्यांगांसाठी सोय आहे</span></label>
       </div>
       <div class="field">
-        <label for="nFac">सुविधा (स्वल्पविरामाने वेगळ्या)</label>
-        <input id="nFac" placeholder="पाणी, वीज, सॅनिटरी पॅड">
+        <label for="nFac" data-i18n="admin.nFac">सुविधा (स्वल्पविरामाने वेगळ्या)</label>
+        <input id="nFac" data-i18n-ph="admin.nFacPh" placeholder="पाणी, वीज, सॅनिटरी पॅड">
       </div>
-      <button class="btn" id="addToilet">टॉयलेट जोडा</button>
+      <button class="btn" id="addToilet" data-i18n="admin.add">टॉयलेट जोडा</button>
     </div>
   </div>
 </main>
 
 <!-- ================= Nav ================= -->
 <nav class="nav" role="tablist">
-  <button data-screen="list" aria-current="true"><span class="ic">📋</span>यादी</button>
-  <button data-screen="map" aria-current="false"><span class="ic">🗺️</span>नकाशा</button>
-  <button data-screen="complaint" aria-current="false"><span class="ic">📝</span>तक्रार</button>
-  <button data-screen="admin" aria-current="false"><span class="ic">🛡️</span>प्रशासन</button>
+  <button data-screen="list" aria-current="true"><span class="ic">📋</span><span data-i18n="nav.list">यादी</span></button>
+  <button data-screen="map" aria-current="false"><span class="ic">🗺️</span><span data-i18n="nav.map">नकाशा</span></button>
+  <button data-screen="complaint" aria-current="false"><span class="ic">📝</span><span data-i18n="nav.complaint">तक्रार</span></button>
+  <button data-screen="admin" aria-current="false"><span class="ic">🛡️</span><span data-i18n="nav.admin">प्रशासन</span></button>
 </nav>
 
 <!-- ================= Rating sheet ================= -->
 <div class="modal" id="rateModal">
   <div class="sheet">
     <h3 id="rateTitle">मानांकन द्या</h3>
-    <p class="sub">तुमच्या मानांकनामुळे इतर नागरिकांना मदत होते — <b>+5 गुण</b></p>
+    <p class="sub" data-i18n-html="rate.sub">तुमच्या मानांकनामुळे इतर नागरिकांना मदत होते — <b>+5 गुण</b></p>
     <div class="stars" id="starRow">
       <button data-v="1">★</button><button data-v="2">★</button><button data-v="3">★</button>
       <button data-v="4">★</button><button data-v="5">★</button>
     </div>
-    <button class="btn" id="rateSave" disabled>मानांकन नोंदवा</button>
-    <button class="btn ghost" id="rateCancel" style="margin-top:9px">रद्द करा</button>
+    <button class="btn" id="rateSave" disabled data-i18n="rate.save">मानांकन नोंदवा</button>
+    <button class="btn ghost" id="rateCancel" style="margin-top:9px" data-i18n="rate.cancel">रद्द करा</button>
   </div>
 </div>
 
@@ -528,14 +543,14 @@ a{color:var(--brand)}
       <p class="qr-status" id="qrStatus" hidden></p>
     </div>
     <p class="qr-link" id="qrLink"></p>
-    <p class="hint" id="qrWarn" hidden style="margin-bottom:14px">
+    <p class="hint" id="qrWarn" hidden style="margin-bottom:14px" data-i18n="qr.warn">
       ⚠️ ॲप सध्या स्थानिक फाइलवरून चालू आहे — Netlify वर प्रकाशित केल्यावरच हा QR मोबाइलवर उघडेल.
     </p>
     <div class="qr-actions">
-      <button class="btn" id="qrDownload">⬇️ डाउनलोड</button>
-      <button class="btn ghost" id="qrPrint">🖨️ प्रिंट</button>
+      <button class="btn" id="qrDownload" data-i18n="qr.download">⬇️ डाउनलोड</button>
+      <button class="btn ghost" id="qrPrint" data-i18n="qr.print">🖨️ प्रिंट</button>
     </div>
-    <button class="btn ghost" id="qrClose" style="margin-top:9px">बंद करा</button>
+    <button class="btn ghost" id="qrClose" style="margin-top:9px" data-i18n="qr.closeBtn">बंद करा</button>
   </div>
 </div>
 
@@ -557,7 +572,7 @@ a{color:var(--brand)}
 
 var LS = {
   toilets:'ts_toilets', complaints:'ts_complaints', points:'ts_points',
-  theme:'ts_theme', rated:'ts_rated', admin:'ts_admin'
+  theme:'ts_theme', rated:'ts_rated', admin:'ts_admin', lang:'ts_lang'
 };
 var ADMIN_PASSWORD = 'admin123';
 var PTS = { rating:5, complaint:10, resolved:15 };
@@ -569,6 +584,358 @@ var AHILYANAGAR = [19.0948, 74.7480];
    ठराविक पत्ता हवा असल्यास येथे लिहा — उदा. 'https://toilet-seva.netlify.app/' */
 var QR_BASE_URL = '';
 var QR_API = 'https://api.qrserver.com/v1/create-qr-code/';
+
+/* =====================================================================
+   भाषा / Language — मराठी (मूळ) + English
+   टीप: शौचालयांची नावे, परिसर व वापरकर्त्याने लिहिलेली तक्रार ही माहिती
+   आहे — ती जशीच्या तशी राहते. फक्त ॲपचा मजकूर भाषांतरित होतो.
+   ===================================================================== */
+var I18N = {
+mr: {
+  'app.title':'टॉयलेट सेवा', 'app.sub':'अहिल्यानगर महानगरपालिका',
+  'app.points':'नागरिक गुण', 'app.theme':'डार्क मोड बदला', 'app.lang':'भाषा बदला',
+  'app.desc':'अहिल्यानगर महानगरपालिका — जवळचे स्वच्छ सार्वजनिक शौचालय शोधा, मानांकन द्या आणि तक्रार नोंदवा.',
+  'app.pointsWord':'गुण',
+  'theme.dark':'डार्क मोड चालू', 'theme.light':'लाइट मोड चालू',
+  'lang.changed':'भाषा बदलली — मराठी',
+  'store.full':'साठवण भरली आहे — जुन्या नोंदी काढा',
+
+  'gps.title':'क्लाउड जोडणी', 'gps.refresh':'पुन्हा शोधा',
+  'gps.searching':'स्थान शोधत आहे…', 'gps.retrying':'स्थान पुन्हा शोधत आहे…',
+  'gps.none':'या उपकरणात GPS उपलब्ध नाही',
+  'gps.live':'<strong>थेट स्थान चालू</strong> — अचूकता {n} मी.',
+  'gps.denied':'स्थान परवानगी नाकारली — यादी मानांकनानुसार दाखवली आहे',
+  'gps.slow':'स्थान मिळण्यास उशीर होत आहे', 'gps.failed':'स्थान मिळाले नाही',
+  'sync.connecting':'☁️ जोडत आहे…', 'sync.cloud':'☁️ क्लाउड', 'sync.local':'📴 स्थानिक',
+  'sync.failed':'क्लाउडशी जोडता आले नाही — स्थानिक माहिती वापरत आहे',
+  'sync.seeded':'10 नमुना टॉयलेट क्लाउडवर नोंदवले ✅',
+  'sync.complaintsFail':'तक्रारी क्लाउडवरून मिळाल्या नाहीत',
+
+  'list.searchPh':'नाव किंवा परिसर शोधा…', 'list.searchAria':'शोधा', 'list.clearAria':'शोध पुसा',
+  'list.filters':'फिल्टर',
+  'filter.all':'सर्व', 'filter.ladies':'महिला', 'filter.divyang':'दिव्यांग',
+  'filter.open':'उपलब्ध', 'filter.top':'★★★★',
+  'list.countNear':'{n} टॉयलेट — जवळच्या क्रमाने', 'list.countRated':'{n} टॉयलेट — मानांकनानुसार',
+  'list.emptyTitle':'या शोधाशी जुळणारे टॉयलेट सापडले नाही.',
+  'list.emptyHint':'दुसरा शब्द वापरून पहा किंवा फिल्टर बदला.',
+  'card.open':'चालू', 'card.closed':'बंद', 'card.divyang':'♿ दिव्यांग सोय',
+  'card.nav':'🧭 मार्ग', 'card.rate':'★ मानांकन', 'card.share':'शेअर',
+  'type.ladies':'फक्त महिला', 'type.gents':'फक्त पुरुष', 'type.both':'महिला + पुरुष',
+  'dist.m':'{n} मी.', 'dist.km':'{n} कि.मी.',
+
+  'map.toilet':'शौचालय', 'map.me':'तुमचे स्थान', 'map.cluster':'झूम आउट → क्लस्टर',
+  'map.showRoute':'🧭 मार्ग दाखवा',
+
+  'comp.title':'तक्रार नोंदवा',
+  'comp.intro':'तुमची तक्रार थेट महानगरपालिकेकडे पोहोचते. नोंद केल्यावर <b>+10 गुण</b> मिळतात.',
+  'comp.selectToilet':'टॉयलेट निवडा', 'comp.type':'तक्रारीचा प्रकार',
+  'comp.detail':'तपशील — 🎤 दाबून मराठीत बोला',
+  'comp.textPh':'काय समस्या आहे ते लिहा किंवा माइक दाबून बोला…',
+  'comp.micAria':'आवाजाने तक्रार नोंदवा',
+  'comp.micHint':'मराठी व्हॉइस टायपिंग (mr-IN) उपलब्ध आहे.',
+  'comp.micNone':'या ब्राउझरमध्ये व्हॉइस सुविधा नाही — कृपया टाइप करा. (Chrome वापरा)',
+  'comp.micOn':'🔴 ऐकत आहे… मराठीत बोला',
+  'comp.micDenied':'माइक परवानगी नाकारली — सेटिंग्जमधून परवानगी द्या.',
+  'comp.micFail':'आवाज ओळखता आला नाही, पुन्हा प्रयत्न करा.',
+  'comp.photo':'फोटो जोडा', 'comp.optional':'(ऐच्छिक)',
+  'comp.photoCta':'कॅमेरा उघडा किंवा फोटो निवडा',
+  'comp.photoHint':'पुरावा असल्यास तक्रार लवकर सुटते',
+  'comp.photoRemove':'फोटो काढा', 'comp.photoAdded':'फोटो जोडला गेला',
+  'comp.photoBig':'फोटो खूप मोठा आहे — दुसरा फोटो निवडा',
+  'comp.submit':'तक्रार पाठवा',
+  'comp.footer':'तक्रार सुटल्यावर तुम्हाला नोटिफिकेशन येईल <b>(+15 गुण)</b>',
+  'comp.pick':'कृपया टॉयलेट निवडा', 'comp.needText':'कृपया तक्रारीचा तपशील लिहा किंवा बोला',
+  'comp.filed':'तक्रार नोंदवली गेली!', 'comp.sentTitle':'तक्रार नोंदवली ✅',
+  'comp.sentBody':'{name} — महानगरपालिकेकडे पाठवली. सुटल्यावर कळवू.',
+  'comp.savedLocal':'तक्रार उपकरणावर साठवली — इंटरनेट आल्यावर पाठवली जाईल',
+  'ctype.clean':'स्वच्छता नाही', 'ctype.water':'पाणी नाही', 'ctype.power':'वीज / दिवे नाहीत',
+  'ctype.door':'दरवाजा / कुलूप तुटले', 'ctype.smell':'दुर्गंधी', 'ctype.closed':'बंद आहे',
+  'ctype.other':'इतर',
+
+  'qr.selected':'शौचालय निवडले: {name}', 'qr.via':'{area} · QR कोड स्कॅन करून निवडले गेले',
+  'qr.notFound':'QR मधील शौचालय सापडले नाही — यादीतून निवडा',
+  'qr.close':'सूचना बंद करा', 'qr.heading':'QR कोड', 'qr.idLabel':'{area} · आयडी: {id}',
+  'qr.alt':'{name} — तक्रारीसाठी QR कोड', 'qr.building':'QR कोड तयार होत आहे…',
+  'qr.failed':'QR कोड मिळाला नाही — इंटरनेट तपासा.',
+  'qr.warn':'⚠️ ॲप सध्या स्थानिक फाइलवरून चालू आहे — Netlify वर प्रकाशित केल्यावरच हा QR मोबाइलवर उघडेल.',
+  'qr.download':'⬇️ डाउनलोड', 'qr.print':'🖨️ प्रिंट', 'qr.closeBtn':'बंद करा',
+  'qr.downloading':'QR कोड डाउनलोड होत आहे…', 'qr.downloaded':'QR कोड डाउनलोड झाला ✅',
+  'qr.newTab':'QR नवीन टॅबमध्ये उघडला — दाबून सेव्ह करा',
+  'qr.popupBlocked':'प्रिंटसाठी पॉपअपला परवानगी द्या',
+  'qr.posterTag':'स्वच्छतेची तक्रार — थेट महानगरपालिकेकडे',
+  'qr.posterCta':'📱 अस्वच्छता किंवा समस्या असल्यास<br>हा QR कोड स्कॅन करून तक्रार नोंदवा',
+
+  'rate.title':'मानांकन द्या', 'rate.sub':'तुमच्या मानांकनामुळे इतर नागरिकांना मदत होते — <b>+5 गुण</b>',
+  'rate.save':'मानांकन नोंदवा', 'rate.cancel':'रद्द करा',
+  'rate.thanks':'मानांकनासाठी धन्यवाद!', 'rate.updated':'मानांकन अद्ययावत केले',
+  'rate.cloudFail':'मानांकन क्लाउडवर पोहोचले नाही — नंतर पुन्हा प्रयत्न होईल',
+
+  'nav.list':'यादी', 'nav.map':'नकाशा', 'nav.complaint':'तक्रार', 'nav.admin':'प्रशासन',
+
+  'admin.loginTitle':'प्रशासन लॉगिन', 'admin.loginSub':'फक्त महानगरपालिका अधिकाऱ्यांसाठी',
+  'admin.email':'ईमेल', 'admin.pass':'पासवर्ड', 'admin.login':'लॉगिन करा',
+  'admin.checking':'तपासत आहे…',
+  'admin.noteFb':'Firebase Auth ने पडताळणी होते.',
+  'admin.noteLocal':'क्लाउड उपलब्ध नाही — ऑफलाइन पासवर्ड वापरा.',
+  'admin.dash':'प्रशासन डॅशबोर्ड', 'admin.logout':'बाहेर पडा',
+  'admin.whoLive':'🔑 {email} · थेट (live) जोडणी',
+  'admin.whoOffline':'ऑफलाइन मोड — बदल फक्त या उपकरणावर',
+  'admin.stTotal':'एकूण टॉयलेट', 'admin.stOpen':'प्रलंबित तक्रारी',
+  'admin.stRating':'सरासरी मानांकन', 'admin.stResolved':'आज सोडवलेल्या',
+  'admin.chart':'📊 सर्वाधिक तक्रारींचे प्रकार', 'admin.noComplaints':'अद्याप तक्रारी नाहीत.',
+  'admin.tabComplaints':'तक्रारी', 'admin.tabToilets':'टॉयलेट यादी', 'admin.tabAdd':'नवीन नोंद',
+  'admin.pending':'प्रलंबित', 'admin.resolved':'सोडवली',
+  'admin.markResolved':'सोडवली म्हणून चिन्हांकित करा',
+  'admin.resolvedOn':'✅ {time} रोजी सोडवली',
+  'admin.allClear':'एकही तक्रार प्रलंबित नाही.',
+  'admin.photoAlt':'तक्रारीचा फोटो',
+  'admin.qr':'📱 QR कोड', 'admin.remove':'काढा',
+  'admin.nName':'टॉयलेटचे नाव', 'admin.nNamePh':'उदा. सार्वजनिक शौचालय, गांधी मैदान',
+  'admin.nArea':'परिसर', 'admin.nAreaPh':'उदा. सावेडी',
+  'admin.nLat':'अक्षांश', 'admin.nLng':'रेखांश',
+  'admin.useLoc':'📍 माझे सध्याचे स्थान वापरा', 'admin.locFilled':'सध्याचे स्थान भरले',
+  'admin.noLoc':'स्थान अद्याप मिळालेले नाही',
+  'admin.nType':'प्रकार', 'admin.nDivyang':'दिव्यांगांसाठी सोय आहे',
+  'admin.nFac':'सुविधा (स्वल्पविरामाने वेगळ्या)', 'admin.nFacPh':'पाणी, वीज, सॅनिटरी पॅड',
+  'admin.add':'टॉयलेट जोडा', 'admin.added':'नवीन टॉयलेट जोडले ✅',
+  'admin.needName':'नाव आणि परिसर आवश्यक आहे', 'admin.needLatLng':'अक्षांश / रेखांश योग्य भरा',
+  'admin.addFail':'क्लाउडवर जोडता आले नाही',
+  'admin.confirmDel':'"{name}" यादीतून काढायचे?', 'admin.removed':'टॉयलेट काढले',
+  'admin.delFail':'क्लाउडवरून काढता आले नाही',
+  'admin.nowOpen':'{name} आता चालू', 'admin.nowClosed':'{name} आता बंद',
+  'admin.toggleFail':'क्लाउडवर बदल पोहोचला नाही',
+  'admin.statusFail':'स्थिती क्लाउडवर बदलली नाही',
+  'admin.resolvedTitle':'तुमची तक्रार सोडवली गेली ✅',
+  'admin.resolvedBody':'{name} — {type}. तुम्हाला +{n} गुण मिळाले!',
+  'admin.resolvedPts':'तक्रार सोडवली गेली!',
+  'admin.welcome':'स्वागत आहे, अधिकारी 🛡️', 'admin.bye':'बाहेर पडलात',
+  'admin.offlineMode':'ऑफलाइन प्रशासन मोड 🛡️', 'admin.wrongPass':'चुकीचा पासवर्ड',
+  'admin.needBoth':'ईमेल व पासवर्ड भरा',
+  'auth.email':'ईमेल पत्ता चुकीचा आहे', 'auth.noUser':'हा वापरकर्ता आढळला नाही',
+  'auth.badPass':'ईमेल किंवा पासवर्ड चुकीचा आहे',
+  'auth.tooMany':'खूप प्रयत्न झाले — थोड्या वेळाने पुन्हा करा',
+  'auth.network':'नेटवर्क मिळाले नाही', 'auth.generic':'लॉगिन होऊ शकले नाही',
+
+  'wa.dist':'{d} अंतरावर', 'wa.rating':'⭐ मानांकन: {r}/5', 'wa.time':'🕒 वेळ: {t}',
+  'wa.divyang':'♿ दिव्यांगांसाठी सोय आहे', 'wa.map':'🗺️ नकाशा: ',
+  'wa.footer':'— टॉयलेट सेवा | अहिल्यानगर महानगरपालिका'
+},
+en: {
+  'app.title':'Toilet Seva', 'app.sub':'Ahilyanagar Municipal Corporation',
+  'app.points':'Citizen points', 'app.theme':'Toggle dark mode', 'app.lang':'Change language',
+  'app.desc':'Ahilyanagar Municipal Corporation — find a clean public toilet near you, rate it and file complaints.',
+  'app.pointsWord':'points',
+  'theme.dark':'Dark mode on', 'theme.light':'Light mode on',
+  'lang.changed':'Language changed — English',
+  'store.full':'Storage is full — remove older entries',
+
+  'gps.title':'Cloud connection', 'gps.refresh':'Retry',
+  'gps.searching':'Finding your location…', 'gps.retrying':'Searching for location again…',
+  'gps.none':'GPS is not available on this device',
+  'gps.live':'<strong>Live location on</strong> — accuracy {n} m',
+  'gps.denied':'Location permission denied — list sorted by rating',
+  'gps.slow':'Taking longer than usual to find your location',
+  'gps.failed':'Could not get your location',
+  'sync.connecting':'☁️ Connecting…', 'sync.cloud':'☁️ Cloud', 'sync.local':'📴 Local',
+  'sync.failed':'Could not reach the cloud — using local data',
+  'sync.seeded':'10 sample toilets saved to the cloud ✅',
+  'sync.complaintsFail':'Could not fetch complaints from the cloud',
+
+  'list.searchPh':'Search by name or area…', 'list.searchAria':'Search', 'list.clearAria':'Clear search',
+  'list.filters':'Filters',
+  'filter.all':'All', 'filter.ladies':'Women', 'filter.divyang':'Accessible',
+  'filter.open':'Open now', 'filter.top':'★★★★',
+  'list.countNear':'{n} toilets — nearest first', 'list.countRated':'{n} toilets — by rating',
+  'list.emptyTitle':'No toilets match your search.',
+  'list.emptyHint':'Try a different word or change the filters.',
+  'card.open':'Open', 'card.closed':'Closed', 'card.divyang':'♿ Accessible',
+  'card.nav':'🧭 Directions', 'card.rate':'★ Rate', 'card.share':'Share',
+  'type.ladies':'Women only', 'type.gents':'Men only', 'type.both':'Women + Men',
+  'dist.m':'{n} m', 'dist.km':'{n} km',
+
+  'map.toilet':'Toilet', 'map.me':'Your location', 'map.cluster':'Zoom out → clusters',
+  'map.showRoute':'🧭 Show directions',
+
+  'comp.title':'File a complaint',
+  'comp.intro':'Your complaint goes straight to the municipal corporation. You earn <b>+10 points</b> for filing one.',
+  'comp.selectToilet':'Select toilet', 'comp.type':'Complaint type',
+  'comp.detail':'Details — tap 🎤 to speak',
+  'comp.textPh':'Describe the problem, or tap the mic to speak…',
+  'comp.micAria':'Record complaint by voice',
+  'comp.micHint':'Voice typing (en-IN) is available.',
+  'comp.micNone':'This browser has no voice support — please type instead. (Try Chrome)',
+  'comp.micOn':'🔴 Listening… speak now',
+  'comp.micDenied':'Mic permission denied — allow it in settings.',
+  'comp.micFail':'Could not recognise your speech, please try again.',
+  'comp.photo':'Add a photo', 'comp.optional':'(optional)',
+  'comp.photoCta':'Open camera or choose a photo',
+  'comp.photoHint':'Photo evidence gets complaints resolved faster',
+  'comp.photoRemove':'Remove photo', 'comp.photoAdded':'Photo attached',
+  'comp.photoBig':'Photo is too large — please choose another',
+  'comp.submit':'Send complaint',
+  'comp.footer':'You will get a notification once it is resolved <b>(+15 points)</b>',
+  'comp.pick':'Please select a toilet', 'comp.needText':'Please describe the complaint',
+  'comp.filed':'Complaint filed!', 'comp.sentTitle':'Complaint filed ✅',
+  'comp.sentBody':'{name} — sent to the corporation. We will let you know when it is resolved.',
+  'comp.savedLocal':'Complaint saved on your device — it will be sent once you are online',
+  'ctype.clean':'Not clean', 'ctype.water':'No water', 'ctype.power':'No electricity / lights',
+  'ctype.door':'Door / lock broken', 'ctype.smell':'Bad smell', 'ctype.closed':'It is closed',
+  'ctype.other':'Other',
+
+  'qr.selected':'Toilet selected: {name}', 'qr.via':'{area} · selected by scanning a QR code',
+  'qr.notFound':'Toilet from the QR code was not found — pick one from the list',
+  'qr.close':'Dismiss notice', 'qr.heading':'QR code', 'qr.idLabel':'{area} · ID: {id}',
+  'qr.alt':'{name} — QR code for complaints', 'qr.building':'Generating QR code…',
+  'qr.failed':'Could not fetch the QR code — check your connection.',
+  'qr.warn':'⚠️ The app is running from a local file — this QR will only work once published to Netlify.',
+  'qr.download':'⬇️ Download', 'qr.print':'🖨️ Print', 'qr.closeBtn':'Close',
+  'qr.downloading':'Downloading QR code…', 'qr.downloaded':'QR code downloaded ✅',
+  'qr.newTab':'QR opened in a new tab — long-press to save',
+  'qr.popupBlocked':'Allow pop-ups to print',
+  'qr.posterTag':'Cleanliness complaints — straight to the corporation',
+  'qr.posterCta':'📱 If it is dirty or something is broken,<br>scan this QR code and file a complaint',
+
+  'rate.title':'Rate this toilet', 'rate.sub':'Your rating helps other citizens — <b>+5 points</b>',
+  'rate.save':'Submit rating', 'rate.cancel':'Cancel',
+  'rate.thanks':'Thanks for rating!', 'rate.updated':'Rating updated',
+  'rate.cloudFail':'Rating did not reach the cloud — it will retry later',
+
+  'nav.list':'List', 'nav.map':'Map', 'nav.complaint':'Complaint', 'nav.admin':'Admin',
+
+  'admin.loginTitle':'Admin login', 'admin.loginSub':'For municipal officials only',
+  'admin.email':'Email', 'admin.pass':'Password', 'admin.login':'Log in',
+  'admin.checking':'Checking…',
+  'admin.noteFb':'Verified through Firebase Auth.',
+  'admin.noteLocal':'Cloud unavailable — use the offline password.',
+  'admin.dash':'Admin dashboard', 'admin.logout':'Log out',
+  'admin.whoLive':'🔑 {email} · live connection',
+  'admin.whoOffline':'Offline mode — changes stay on this device',
+  'admin.stTotal':'Total toilets', 'admin.stOpen':'Pending complaints',
+  'admin.stRating':'Average rating', 'admin.stResolved':'Resolved today',
+  'admin.chart':'📊 Most common complaint types', 'admin.noComplaints':'No complaints yet.',
+  'admin.tabComplaints':'Complaints', 'admin.tabToilets':'Toilet list', 'admin.tabAdd':'Add new',
+  'admin.pending':'Pending', 'admin.resolved':'Resolved',
+  'admin.markResolved':'Mark as resolved',
+  'admin.resolvedOn':'✅ Resolved on {time}',
+  'admin.allClear':'No pending complaints.',
+  'admin.photoAlt':'Complaint photo',
+  'admin.qr':'📱 QR code', 'admin.remove':'Remove',
+  'admin.nName':'Toilet name', 'admin.nNamePh':'e.g. Public toilet, Gandhi Maidan',
+  'admin.nArea':'Area', 'admin.nAreaPh':'e.g. Savedi',
+  'admin.nLat':'Latitude', 'admin.nLng':'Longitude',
+  'admin.useLoc':'📍 Use my current location', 'admin.locFilled':'Current location filled in',
+  'admin.noLoc':'Location not available yet',
+  'admin.nType':'Type', 'admin.nDivyang':'Has accessibility facilities',
+  'admin.nFac':'Facilities (comma separated)', 'admin.nFacPh':'Water, Electricity, Sanitary pads',
+  'admin.add':'Add toilet', 'admin.added':'New toilet added ✅',
+  'admin.needName':'Name and area are required', 'admin.needLatLng':'Enter a valid latitude / longitude',
+  'admin.addFail':'Could not add it to the cloud',
+  'admin.confirmDel':'Remove "{name}" from the list?', 'admin.removed':'Toilet removed',
+  'admin.delFail':'Could not remove it from the cloud',
+  'admin.nowOpen':'{name} is now open', 'admin.nowClosed':'{name} is now closed',
+  'admin.toggleFail':'The change did not reach the cloud',
+  'admin.statusFail':'Status did not update in the cloud',
+  'admin.resolvedTitle':'Your complaint was resolved ✅',
+  'admin.resolvedBody':'{name} — {type}. You earned +{n} points!',
+  'admin.resolvedPts':'Complaint resolved!',
+  'admin.welcome':'Welcome, officer 🛡️', 'admin.bye':'Logged out',
+  'admin.offlineMode':'Offline admin mode 🛡️', 'admin.wrongPass':'Wrong password',
+  'admin.needBoth':'Enter both email and password',
+  'auth.email':'That email address is not valid', 'auth.noUser':'No such user found',
+  'auth.badPass':'Wrong email or password',
+  'auth.tooMany':'Too many attempts — try again shortly',
+  'auth.network':'No network connection', 'auth.generic':'Could not log in',
+
+  'wa.dist':'{d} away', 'wa.rating':'⭐ Rating: {r}/5', 'wa.time':'🕒 Hours: {t}',
+  'wa.divyang':'♿ Accessible facilities available', 'wa.map':'🗺️ Map: ',
+  'wa.footer':'— Toilet Seva | Ahilyanagar Municipal Corporation'
+}
+};
+
+/* तक्रारीचे प्रकार — मूल्य नेहमी मराठीत साठवले जाते (जुन्या नोंदी जुळाव्यात),
+   फक्त दिसणारा मजकूर भाषेनुसार बदलतो */
+var COMPLAINT_TYPES = [
+  { value:'स्वच्छता नाही',        key:'ctype.clean'  },
+  { value:'पाणी नाही',            key:'ctype.water'  },
+  { value:'वीज / दिवे नाहीत',     key:'ctype.power'  },
+  { value:'दरवाजा / कुलूप तुटले', key:'ctype.door'   },
+  { value:'दुर्गंधी',              key:'ctype.smell'  },
+  { value:'बंद आहे',              key:'ctype.closed' },
+  { value:'इतर',                  key:'ctype.other'  }
+];
+
+/* बीज-माहितीतील सुविधा व वेळ — ओळखीचे शब्द इंग्रजीत दाखवा,
+   न ओळखलेले जसेच्या तसे राहतात (प्रशासकाने भरलेले असू शकतात) */
+var DATA_EN = {
+  'पाणी':'Water', 'वीज':'Electricity', 'सॅनिटरी पॅड':'Sanitary pads',
+  'दिव्यांग रॅम्प':'Accessible ramp', 'स्वच्छता कर्मचारी':'Cleaning staff',
+  'बेबी केअर':'Baby care', 'हिरकणी कक्ष':'Nursing room',
+  'सकाळी':'', 'रात्री':'', '24 तास':'24 hours'
+};
+
+function dataText(s){
+  if (state.lang !== 'en' || !s) return s;
+  if (DATA_EN[s]) return DATA_EN[s];
+  /* वेळ: "सकाळी 6 – रात्री 10" → "6 AM – 10 PM" */
+  if (/सकाळी|रात्री|संध्याकाळी|दुपारी/.test(s)){
+    return s.replace(/सकाळी\s*(\d+)/g, '$1 AM')
+            .replace(/दुपारी\s*(\d+)/g, '$1 PM')
+            .replace(/संध्याकाळी\s*(\d+)/g, '$1 PM')
+            .replace(/रात्री\s*(\d+)/g, '$1 PM');
+  }
+  if (s === '24 तास') return '24 hours';
+  return s;
+}
+
+function T(key, vars){
+  var dict = I18N[state.lang] || I18N.mr;
+  var s = dict[key];
+  if (s == null) s = I18N.mr[key];
+  if (s == null) return key;
+  if (vars){
+    Object.keys(vars).forEach(function(k){
+      s = s.split('{' + k + '}').join(vars[k]);
+    });
+  }
+  return s;
+}
+function locale(){ return state.lang === 'en' ? 'en-IN' : 'mr-IN'; }
+
+/* संपूर्ण ॲप सध्याच्या भाषेत पुन्हा लिहा — स्थिर मजकूर data-i18n ने,
+   गतिशील मजकूर संबंधित render फंक्शन पुन्हा चालवून */
+function applyLanguage(){
+  var el = document.documentElement;
+  el.setAttribute('lang', state.lang);
+  el.setAttribute('data-lang', state.lang);
+
+  $all('[data-i18n]').forEach(function(n){ n.textContent = T(n.getAttribute('data-i18n')); });
+  $all('[data-i18n-html]').forEach(function(n){ n.innerHTML = T(n.getAttribute('data-i18n-html')); });
+  $all('[data-i18n-ph]').forEach(function(n){ n.setAttribute('placeholder', T(n.getAttribute('data-i18n-ph'))); });
+  $all('[data-i18n-aria]').forEach(function(n){ n.setAttribute('aria-label', T(n.getAttribute('data-i18n-aria'))); });
+  $all('[data-i18n-title]').forEach(function(n){ n.setAttribute('title', T(n.getAttribute('data-i18n-title'))); });
+  $all('[data-i18n-alt]').forEach(function(n){ n.setAttribute('alt', T(n.getAttribute('data-i18n-alt'))); });
+
+  document.title = T('app.title') + ' — ' + T('app.sub');
+  var desc = document.querySelector('meta[name="description"]');
+  if (desc) desc.setAttribute('content', T('app.desc'));
+
+  /* लक्षात ठेवलेला गतिशील मजकूर पुन्हा लिहा */
+  setGps(state.gpsKey, state.gpsVars, state.gpsKey === 'gps.live');
+  setSync(state.syncKind, state.syncKey);
+  if ($('#micHint')) $('#micHint').textContent = T(micKey);
+  if (recog) recog.lang = locale();
+
+  fillComplaintTypes();
+  fillToiletSelect();
+  renderCards();
+  renderQrNotice();
+  if (meMarker) meMarker.setPopupContent('<div class="popup"><h4>' + esc(T('map.me')) + '</h4></div>');
+  if (map) refreshMarkers();
+  setAdminUI();
+
+  /* QR पत्रक उघडे असल्यास त्यातील मजकूरही नव्या भाषेत */
+  if (qrTarget && $('#qrModal').classList.contains('show')) openQr(qrTarget);
+}
 
 /* ---------- 10 नमुना टॉयलेट (अहिल्यानगर) ---------- */
 var SEED_TOILETS = [
@@ -623,7 +990,14 @@ var state = {
   photo: null,
   /* QR कोड ने आलेला ?complaint=<id> — यादी येईपर्यंत प्रतीक्षेत राहतो */
   pendingToiletId: readComplaintParam(),
-  qrToiletId: ''
+  qrToiletId: '',
+  /* भाषा — मराठी मूळ; localStorage मध्ये टिकते */
+  lang: (load(LS.lang, 'mr') === 'en' ? 'en' : 'mr'),
+  /* GPS पट्टीचा सध्याचा मजकूर — भाषा बदलल्यावर पुन्हा लिहिण्यासाठी */
+  gpsKey: 'gps.searching',
+  gpsVars: null,
+  syncKind: '',
+  syncKey: 'sync.connecting'
 };
 
 /* URL मधील ?complaint=<toilet-id> वाचा */
@@ -647,7 +1021,7 @@ function load(key, fallback){
 }
 function save(key, val){
   try { localStorage.setItem(key, JSON.stringify(val)); }
-  catch(e){ toast('साठवण भरली आहे — जुन्या नोंदी काढा'); }
+  catch(e){ toast(T('store.full')); }
 }
 function $(sel){ return document.querySelector(sel); }
 function $all(sel){ return Array.prototype.slice.call(document.querySelectorAll(sel)); }
@@ -697,11 +1071,23 @@ if (!DEVICE_ID){
   save('ts_device', DEVICE_ID);
 }
 
-function setSync(kind, text){
+function setSync(kind, key){
+  state.syncKind = kind;
+  state.syncKey = key;
   var el = $('#syncBadge');
   if (!el) return;
   el.className = 'sync' + (kind ? ' ' + kind : '');
-  el.textContent = text;
+  el.textContent = T(key);
+}
+
+/* GPS पट्टी — मजकूर लक्षात ठेवतो, म्हणजे भाषा बदलल्यावर पुन्हा लिहिता येतो */
+function setGps(key, vars, asHtml){
+  state.gpsKey = key;
+  state.gpsVars = vars || null;
+  var el = $('#gpsText');
+  if (!el) return;
+  if (asHtml) el.innerHTML = T(key, vars);
+  else el.textContent = T(key, vars);
 }
 
 /* Firestore Timestamp किंवा साधा number — दोन्ही चालावेत */
@@ -715,7 +1101,7 @@ function ms(v){
 
 function initFirebase(){
   if (typeof firebase === 'undefined' || !firebase.initializeApp){
-    setSync('off', '📴 स्थानिक');
+    setSync('off', 'sync.local');
     console.warn('Firebase SDK लोड झाला नाही — localStorage वापरत आहे.');
     return;
   }
@@ -725,7 +1111,7 @@ function initFirebase(){
     fb.auth = firebase.auth();
     fb.ok = true;
   } catch (err){
-    setSync('off', '📴 स्थानिक');
+    setSync('off', 'sync.local');
     console.warn('Firebase सुरू होऊ शकले नाही:', err);
     return;
   }
@@ -735,7 +1121,7 @@ function initFirebase(){
     console.warn('Firestore offline persistence अनुपलब्ध:', err && err.code);
   });
 
-  setSync('', '☁️ जोडत आहे…');
+  setSync('', 'sync.connecting');
   watchToilets();
   watchAuth();
 }
@@ -759,7 +1145,7 @@ function watchToilets(){
       return t;
     });
     save(LS.toilets, state.toilets);
-    setSync('on', '☁️ क्लाउड');
+    setSync('on', 'sync.cloud');
 
     renderCards();
     fillToiletSelect();
@@ -767,8 +1153,8 @@ function watchToilets(){
     if (state.isAdmin) renderAdmin();
   }, function(err){
     console.warn('toilets वाचता आले नाहीत:', err);
-    setSync('off', '📴 स्थानिक');
-    toast('क्लाउडशी जोडता आले नाही — स्थानिक माहिती वापरत आहे');
+    setSync('off', 'sync.local');
+    toast(T('sync.failed'));
   });
 }
 
@@ -781,11 +1167,11 @@ function seedToilets(){
     batch.set(fb.db.collection('toilets').doc(t.id), copy);
   });
   batch.commit().then(function(){
-    toast('10 नमुना टॉयलेट क्लाउडवर नोंदवले ✅');
+    toast(T('sync.seeded'));
   }).catch(function(err){
     fb.seeded = false;
     console.warn('seed अयशस्वी:', err);
-    setSync('off', '📴 स्थानिक');
+    setSync('off', 'sync.local');
   });
 }
 
@@ -823,7 +1209,7 @@ function watchComplaints(){
       renderAdmin();
     }, function(err){
       console.warn('complaints वाचता आल्या नाहीत:', err);
-      toast('तक्रारी क्लाउडवरून मिळाल्या नाहीत');
+      toast(T('sync.complaintsFail'));
     });
 }
 function stopComplaints(){
@@ -847,11 +1233,18 @@ function applyTheme(){
   var meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute('content', dark ? '#06090b' : '#0e7c5a');
 }
+$('#langBtn').addEventListener('click', function(){
+  state.lang = state.lang === 'mr' ? 'en' : 'mr';
+  save(LS.lang, state.lang);
+  applyLanguage();
+  toast(T('lang.changed'));
+});
+
 $('#themeBtn').addEventListener('click', function(){
   var next = currentTheme() === 'dark' ? 'light' : 'dark';
   save(LS.theme, next);
   applyTheme();
-  toast(next === 'dark' ? 'डार्क मोड चालू' : 'लाइट मोड चालू');
+  toast(T(next === 'dark' ? 'theme.dark' : 'theme.light'));
 });
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(){
   if (!load(LS.theme, null)) applyTheme();
@@ -864,7 +1257,7 @@ function addPoints(n, why){
   state.points += n;
   save(LS.points, state.points);
   renderPoints(true);
-  if (why) toast(why + ' (+' + n + ' गुण)');
+  if (why) toast(why + ' (+' + n + ' ' + T('app.pointsWord') + ')');
 }
 function renderPoints(animate){
   $('#pointsVal').textContent = state.points;
@@ -884,11 +1277,11 @@ function startTracking(){
   var strip = $('#gpsStrip');
   if (!('geolocation' in navigator)){
     strip.classList.add('error');
-    $('#gpsText').textContent = 'या उपकरणात GPS उपलब्ध नाही';
+    setGps('gps.none');
     return;
   }
   if (watchId !== null) navigator.geolocation.clearWatch(watchId);
-  $('#gpsText').textContent = 'स्थान शोधत आहे…';
+  setGps('gps.searching');
   strip.classList.remove('error','live');
 
   watchId = navigator.geolocation.watchPosition(function(p){
@@ -897,20 +1290,17 @@ function startTracking(){
     state.accuracy = p.coords.accuracy;
     strip.classList.add('live');
     strip.classList.remove('error');
-    $('#gpsText').innerHTML = '<strong>थेट स्थान चालू</strong> — अचूकता ' + Math.round(p.coords.accuracy) + ' मी.';
+    setGps('gps.live', { n: Math.round(p.coords.accuracy) }, true);
     if (moved){ renderCards(); }
     updateMeMarker();
   }, function(err){
     strip.classList.add('error');
     strip.classList.remove('live');
-    var msg = err.code === 1 ? 'स्थान परवानगी नाकारली — यादी नावानुसार दाखवली आहे'
-            : err.code === 3 ? 'स्थान मिळण्यास उशीर होत आहे'
-            : 'स्थान मिळाले नाही';
-    $('#gpsText').textContent = msg;
+    setGps(err.code === 1 ? 'gps.denied' : err.code === 3 ? 'gps.slow' : 'gps.failed');
     renderCards();
   }, { enableHighAccuracy:true, maximumAge:5000, timeout:15000 });
 }
-$('#gpsRefresh').addEventListener('click', function(){ startTracking(); toast('स्थान पुन्हा शोधत आहे…'); });
+$('#gpsRefresh').addEventListener('click', function(){ startTracking(); toast(T('gps.retrying')); });
 
 function haversine(lat1, lon1, lat2, lon2){
   var R = 6371, toRad = Math.PI/180;
@@ -925,14 +1315,14 @@ function distanceTo(t){
 }
 function fmtDistance(km){
   if (km === null) return null;
-  return km < 1 ? Math.round(km*1000) + ' मी.' : km.toFixed(1) + ' कि.मी.';
+  return km < 1 ? T('dist.m', { n: Math.round(km*1000) }) : T('dist.km', { n: km.toFixed(1) });
 }
 
 /* =====================================================================
    List screen — search + filters + cards
    ===================================================================== */
 function typeLabel(t){
-  return t.type === 'ladies' ? 'फक्त महिला' : t.type === 'gents' ? 'फक्त पुरुष' : 'महिला + पुरुष';
+  return T(t.type === 'ladies' ? 'type.ladies' : t.type === 'gents' ? 'type.gents' : 'type.both');
 }
 function visibleToilets(){
   var q = state.query.trim().toLowerCase();
@@ -956,14 +1346,12 @@ function renderCards(){
   var list = visibleToilets();
   var wrap = $('#cards');
 
-  $('#resultLine').textContent = state.pos
-    ? list.length + ' टॉयलेट — जवळच्या क्रमाने'
-    : list.length + ' टॉयलेट — मानांकनानुसार';
+  $('#resultLine').textContent = T(state.pos ? 'list.countNear' : 'list.countRated', { n: list.length });
 
   if (!list.length){
     wrap.innerHTML = '<div class="empty"><div class="big">🔍</div>' +
-      '<p>या शोधाशी जुळणारे टॉयलेट सापडले नाही.</p>' +
-      '<p style="font-size:13px">दुसरा शब्द वापरून पहा किंवा फिल्टर बदला.</p></div>';
+      '<p>' + esc(T('list.emptyTitle')) + '</p>' +
+      '<p style="font-size:13px">' + esc(T('list.emptyHint')) + '</p></div>';
     return;
   }
 
@@ -973,23 +1361,23 @@ function renderCards(){
       '<div class="card-head">' +
         '<div style="flex:1;min-width:0">' +
           '<h3>' + esc(t.name) + '</h3>' +
-          '<p class="area">📍 ' + esc(t.area) + ' · ' + esc(t.timing || '') + '</p>' +
+          '<p class="area">📍 ' + esc(t.area) + ' · ' + esc(dataText(t.timing || '')) + '</p>' +
         '</div>' +
-        '<span class="status' + (t.open ? '' : ' closed') + '">' + (t.open ? 'चालू' : 'बंद') + '</span>' +
+        '<span class="status' + (t.open ? '' : ' closed') + '">' + esc(T(t.open ? 'card.open' : 'card.closed')) + '</span>' +
       '</div>' +
       '<div class="meta">' +
-        (d ? '<span class="pill dist">🚶 ' + d + '</span>' : '') +
+        (d ? '<span class="pill dist">🚶 ' + esc(d) + '</span>' : '') +
         '<span class="pill star">★ ' + t.rating.toFixed(1) + ' (' + t.votes + ')</span>' +
-        '<span class="pill">' + typeLabel(t) + '</span>' +
-        (t.divyang ? '<span class="pill">♿ दिव्यांग सोय</span>' : '') +
+        '<span class="pill">' + esc(typeLabel(t)) + '</span>' +
+        (t.divyang ? '<span class="pill">' + esc(T('card.divyang')) + '</span>' : '') +
       '</div>' +
       '<div class="facilities">' +
-        (t.facilities || []).map(function(f){ return '<span class="fac">' + esc(f) + '</span>'; }).join('') +
+        (t.facilities || []).map(function(f){ return '<span class="fac">' + esc(dataText(f)) + '</span>'; }).join('') +
       '</div>' +
       '<div class="actions">' +
-        '<button class="primary" data-act="nav" data-id="' + t.id + '">🧭 मार्ग</button>' +
-        '<button data-act="rate" data-id="' + t.id + '">★ मानांकन</button>' +
-        '<button class="wa" data-act="share" data-id="' + t.id + '">शेअर</button>' +
+        '<button class="primary" data-act="nav" data-id="' + t.id + '">' + esc(T('card.nav')) + '</button>' +
+        '<button data-act="rate" data-id="' + t.id + '">' + esc(T('card.rate')) + '</button>' +
+        '<button class="wa" data-act="share" data-id="' + t.id + '">' + esc(T('card.share')) + '</button>' +
       '</div>' +
     '</article>';
   }).join('');
@@ -1040,12 +1428,12 @@ function shareWhatsApp(t){
   var map = 'https://www.google.com/maps/search/?api=1&query=' + t.lat + ',' + t.lng;
   var text =
     '🚻 *' + t.name + '*\n' +
-    '📍 ' + t.area + (d ? ' (' + d + ' अंतरावर)' : '') + '\n' +
-    '⭐ मानांकन: ' + t.rating.toFixed(1) + '/5\n' +
-    '🕒 वेळ: ' + (t.timing || '—') + '\n' +
-    (t.divyang ? '♿ दिव्यांगांसाठी सोय आहे\n' : '') +
-    '🗺️ नकाशा: ' + map + '\n\n' +
-    '— टॉयलेट सेवा | अहिल्यानगर महानगरपालिका';
+    '📍 ' + t.area + (d ? ' (' + T('wa.dist', { d: d }) + ')' : '') + '\n' +
+    T('wa.rating', { r: t.rating.toFixed(1) }) + '\n' +
+    T('wa.time', { t: dataText(t.timing || '—') }) + '\n' +
+    (t.divyang ? T('wa.divyang') + '\n' : '') +
+    T('wa.map') + map + '\n\n' +
+    T('wa.footer');
 
   var wa = 'https://wa.me/?text=' + encodeURIComponent(text);
   if (navigator.share){
@@ -1110,8 +1498,8 @@ $('#rateSave').addEventListener('click', function(){
   $('#rateModal').classList.remove('show');
   renderCards();
   refreshMarkers();
-  if (!already) addPoints(PTS.rating, 'मानांकनासाठी धन्यवाद!');
-  else toast('मानांकन अद्ययावत केले');
+  if (!already) addPoints(PTS.rating, T('rate.thanks'));
+  else toast(T('rate.updated'));
 
   if (!fb.ok) return;
 
@@ -1142,7 +1530,7 @@ $('#rateSave').addEventListener('click', function(){
     });
   }).catch(function(err){
     console.warn('मानांकन साठवता आले नाही:', err);
-    toast('मानांकन क्लाउडवर पोहोचले नाही — नंतर पुन्हा प्रयत्न होईल');
+    toast(T('rate.cloudFail'));
   });
 });
 
@@ -1156,7 +1544,7 @@ function initMap(){
 
   /* सानुकूल शौचालय चिन्ह — Leaflet लोड झाल्यावरच तयार होते */
   toiletIcon = L.icon({
-    iconUrl: 'icon.png',
+    iconUrl: 'icon.svg',
     iconSize: [40, 40],
     iconAnchor: [20, 40],
     popupAnchor: [0, -40]
@@ -1219,9 +1607,9 @@ function addToiletMarker(t){
   var html =
     '<div class="popup">' +
       '<h4>' + esc(t.name) + '</h4>' +
-      '<p>📍 ' + esc(t.area) + (d ? ' · ' + d : '') + '<br>' +
-      '★ ' + t.rating.toFixed(1) + ' · ' + (t.open ? 'चालू' : 'बंद') + ' · ' + typeLabel(t) + '</p>' +
-      '<button onclick="navigateToId(\'' + t.id + '\')">🧭 मार्ग दाखवा</button>' +
+      '<p>📍 ' + esc(t.area) + (d ? ' · ' + esc(d) : '') + '<br>' +
+      '★ ' + t.rating.toFixed(1) + ' · ' + esc(T(t.open ? 'card.open' : 'card.closed')) + ' · ' + esc(typeLabel(t)) + '</p>' +
+      '<button onclick="navigateToId(\'' + t.id + '\')">' + esc(T('map.showRoute')) + '</button>' +
     '</div>';
   L.marker([t.lat, t.lng], { icon: toiletIcon }).bindPopup(html).addTo(markerLayer);
 }
@@ -1236,7 +1624,7 @@ function updateMeMarker(){
     meMarker = L.marker(state.pos, {
       icon: L.divIcon({ className:'', html:'<div class="me-dot" style="width:16px;height:16px"></div>', iconSize:[16,16], iconAnchor:[8,8] }),
       zIndexOffset: 1000
-    }).bindPopup('<div class="popup"><h4>तुमचे स्थान</h4></div>').addTo(map);
+    }).bindPopup('<div class="popup"><h4>' + esc(T('map.me')) + '</h4></div>').addTo(map);
     meCircle = L.circle(state.pos, { radius: state.accuracy || 40, color:'#2563eb', weight:1, fillOpacity:.1 }).addTo(map);
     map.setView(state.pos, 15);
   } else {
@@ -1257,6 +1645,25 @@ function fillToiletSelect(){
   }).join('');
   if (keep) selectToiletValue(sel, keep);
   applyQrDeepLink();
+}
+
+/* तक्रारीच्या प्रकारांची यादी — मूल्य मराठीच, मजकूर भाषेनुसार */
+function fillComplaintTypes(){
+  var sel = $('#cType');
+  if (!sel) return;
+  var keep = sel.value;
+  sel.innerHTML = COMPLAINT_TYPES.map(function(c){
+    return '<option value="' + esc(c.value) + '">' + esc(T(c.key)) + '</option>';
+  }).join('');
+  if (keep) selectToiletValue(sel, keep);
+}
+
+/* साठवलेले (मराठी) मूल्य → सध्याच्या भाषेतील मजकूर */
+function complaintTypeLabel(value){
+  for (var i = 0; i < COMPLAINT_TYPES.length; i++){
+    if (COMPLAINT_TYPES[i].value === value) return T(COMPLAINT_TYPES[i].key);
+  }
+  return value;
 }
 
 function selectToiletValue(sel, id){
@@ -1288,10 +1695,18 @@ function applyQrDeepLink(){
   state.qrToiletId = t.id;
   selectToiletValue($('#cToilet'), t.id);
 
-  $('#qrNoticeName').textContent = 'शौचालय निवडले: ' + t.name;
-  $('#qrNoticeArea').textContent = t.area + ' · QR कोड स्कॅन करून निवडले गेले';
+  renderQrNotice();
   $('#qrNotice').hidden = false;
-  toast('शौचालय निवडले: ' + t.name);
+  toast(T('qr.selected', { name: t.name }));
+}
+
+/* QR सूचनेचा मजकूर — भाषा बदलल्यावरही बरोबर राहावा */
+function renderQrNotice(){
+  if (!state.qrToiletId) return;
+  var t = state.toilets.filter(function(x){ return x.id === state.qrToiletId; })[0];
+  if (!t) return;
+  $('#qrNoticeName').textContent = T('qr.selected', { name: t.name });
+  $('#qrNoticeArea').textContent = T('qr.via', { area: t.area });
 }
 
 /* वापरकर्त्याने स्वतः दुसरे टॉयलेट निवडल्यास QR ची निवड सोडून द्या */
@@ -1304,13 +1719,15 @@ $('#qrNoticeClose').addEventListener('click', function(){ $('#qrNotice').hidden 
 /* --- Voice --- */
 var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 var recog = null, listening = false;
+var micKey = 'comp.micHint';
 if (!SR){
-  $('#micHint').textContent = 'या ब्राउझरमध्ये व्हॉइस सुविधा नाही — कृपया टाइप करा. (Chrome वापरा)';
+  micKey = 'comp.micNone';
+  $('#micHint').textContent = T(micKey);
   $('#micBtn').disabled = true;
   $('#micBtn').style.opacity = '.5';
 } else {
   recog = new SR();
-  recog.lang = 'mr-IN';
+  recog.lang = locale();
   recog.interimResults = true;
   recog.continuous = false;
 
@@ -1319,7 +1736,8 @@ if (!SR){
     listening = true;
     baseText = $('#cText').value ? $('#cText').value.trim() + ' ' : '';
     $('#micBtn').classList.add('rec');
-    $('#micHint').textContent = '🔴 ऐकत आहे… मराठीत बोला';
+    micKey = 'comp.micOn';
+    $('#micHint').textContent = T(micKey);
   };
   recog.onresult = function(e){
     var text = '';
@@ -1329,15 +1747,16 @@ if (!SR){
   recog.onerror = function(e){
     listening = false;
     $('#micBtn').classList.remove('rec');
-    $('#micHint').textContent = e.error === 'not-allowed'
-      ? 'माइक परवानगी नाकारली — सेटिंग्जमधून परवानगी द्या.'
-      : 'आवाज ओळखता आला नाही, पुन्हा प्रयत्न करा.';
+    micKey = e.error === 'not-allowed' ? 'comp.micDenied' : 'comp.micFail';
+    $('#micHint').textContent = T(micKey);
   };
   recog.onend = function(){
     listening = false;
     $('#micBtn').classList.remove('rec');
-    if ($('#micHint').textContent.indexOf('ऐकत') !== -1)
-      $('#micHint').textContent = 'मराठी व्हॉइस टायपिंग (mr-IN) उपलब्ध आहे.';
+    if (micKey === 'comp.micOn'){
+      micKey = 'comp.micHint';
+      $('#micHint').textContent = T(micKey);
+    }
   };
   $('#micBtn').addEventListener('click', function(){
     if (listening){ recog.stop(); return; }
@@ -1370,13 +1789,13 @@ $('#cPhoto').addEventListener('change', function(e){
       }
 
       if (!data || data.length > LIMIT){
-        toast('फोटो खूप मोठा आहे — दुसरा फोटो निवडा');
+        toast(T('comp.photoBig'));
         return;
       }
       state.photo = data;
       $('#photoImg').src = state.photo;
       $('#photoPreview').style.display = 'block';
-      toast('फोटो जोडला गेला');
+      toast(T('comp.photoAdded'));
     };
     img.src = ev.target.result;
   };
@@ -1417,8 +1836,8 @@ $('#submitComplaint').addEventListener('click', function(){
   var t = state.toilets.filter(function(x){ return x.id === toiletId; })[0];
   var text = $('#cText').value.trim();
 
-  if (!t){ toast('कृपया टॉयलेट निवडा'); return; }
-  if (!text){ toast('कृपया तक्रारीचा तपशील लिहा किंवा बोला'); $('#cText').focus(); return; }
+  if (!t){ toast(T('comp.pick')); return; }
+  if (!text){ toast(T('comp.needText')); $('#cText').focus(); return; }
 
   var record = {
     toiletId: t.id,
@@ -1445,11 +1864,11 @@ $('#submitComplaint').addEventListener('click', function(){
   $('#cPhoto').value = '';
   $('#photoPreview').style.display = 'none';
 
-  addPoints(PTS.complaint, 'तक्रार नोंदवली गेली!');
+  addPoints(PTS.complaint, T('comp.filed'));
   renderAdmin();
 
   askNotifications().then(function(p){
-    if (p === 'granted') notify('तक्रार नोंदवली ✅', t.name + ' — महानगरपालिकेकडे पाठवली. सुटल्यावर कळवू.');
+    if (p === 'granted') notify(T('comp.sentTitle'), T('comp.sentBody', { name: t.name }));
   });
 
   if (!fb.ok) return;
@@ -1459,7 +1878,7 @@ $('#submitComplaint').addEventListener('click', function(){
     save(LS.complaints, state.complaints);
   }).catch(function(err){
     console.warn('तक्रार साठवता आली नाही:', err);
-    toast('तक्रार उपकरणावर साठवली — इंटरनेट आल्यावर पाठवली जाईल');
+    toast(T('comp.savedLocal'));
   });
 });
 
@@ -1469,24 +1888,22 @@ $('#submitComplaint').addEventListener('click', function(){
 function setAdminUI(){
   $('#adminLogin').hidden = state.isAdmin;
   $('#adminPanel').hidden = !state.isAdmin;
-  $('#adminAuthNote').textContent = fb.ok
-    ? 'Firebase Auth ने पडताळणी होते.'
-    : 'क्लाउड उपलब्ध नाही — ऑफलाइन पासवर्ड वापरा.';
+  $('#adminAuthNote').textContent = T(fb.ok ? 'admin.noteFb' : 'admin.noteLocal');
   var who = $('#adminWho');
   if (who) who.textContent = state.adminUser
-    ? '🔑 ' + state.adminUser + ' · थेट (live) जोडणी'
-    : 'ऑफलाइन मोड — बदल फक्त या उपकरणावर';
+    ? T('admin.whoLive', { email: state.adminUser })
+    : T('admin.whoOffline');
   if (state.isAdmin) renderAdmin();
 }
 function authErrorMessage(code){
   switch (code){
-    case 'auth/invalid-email':        return 'ईमेल पत्ता चुकीचा आहे';
-    case 'auth/user-not-found':       return 'हा वापरकर्ता आढळला नाही';
+    case 'auth/invalid-email':        return T('auth.email');
+    case 'auth/user-not-found':       return T('auth.noUser');
     case 'auth/wrong-password':
-    case 'auth/invalid-credential':   return 'ईमेल किंवा पासवर्ड चुकीचा आहे';
-    case 'auth/too-many-requests':    return 'खूप प्रयत्न झाले — थोड्या वेळाने पुन्हा करा';
-    case 'auth/network-request-failed': return 'नेटवर्क मिळाले नाही';
-    default:                          return 'लॉगिन होऊ शकले नाही';
+    case 'auth/invalid-credential':   return T('auth.badPass');
+    case 'auth/too-many-requests':    return T('auth.tooMany');
+    case 'auth/network-request-failed': return T('auth.network');
+    default:                          return T('auth.generic');
   }
 }
 
@@ -1501,35 +1918,35 @@ $('#adminLoginBtn').addEventListener('click', function(){
       save(LS.admin, true);
       $('#adminPass').value = '';
       setAdminUI();
-      toast('ऑफलाइन प्रशासन मोड 🛡️');
+      toast(T('admin.offlineMode'));
     } else {
-      toast('चुकीचा पासवर्ड');
+      toast(T('admin.wrongPass'));
     }
     return;
   }
 
-  if (!email || !pass){ toast('ईमेल व पासवर्ड भरा'); return; }
+  if (!email || !pass){ toast(T('admin.needBoth')); return; }
 
   var btn = $('#adminLoginBtn');
   btn.disabled = true;
-  btn.textContent = 'तपासत आहे…';
+  btn.textContent = T('admin.checking');
 
   fb.auth.signInWithEmailAndPassword(email, pass).then(function(){
     $('#adminPass').value = '';
-    toast('स्वागत आहे, अधिकारी 🛡️');
+    toast(T('admin.welcome'));
   }).catch(function(err){
     toast(authErrorMessage(err && err.code));
     console.warn('Auth:', err && err.code, err && err.message);
   }).then(function(){
     btn.disabled = false;
-    btn.textContent = 'लॉगिन करा';
+    btn.textContent = T('admin.login');
   });
 });
 $('#adminPass').addEventListener('keydown', function(e){ if (e.key === 'Enter') $('#adminLoginBtn').click(); });
 
 $('#adminLogout').addEventListener('click', function(){
   if (fb.ok && fb.auth.currentUser){
-    fb.auth.signOut().then(function(){ toast('बाहेर पडलात'); });
+    fb.auth.signOut().then(function(){ toast(T('admin.bye')); });
     return;
   }
   state.isAdmin = false; save(LS.admin, false); setAdminUI();
@@ -1552,7 +1969,7 @@ function isToday(ts){
 }
 function fmtTime(ts){
   var d = new Date(ts);
-  return d.toLocaleDateString('mr-IN') + ' · ' + d.toLocaleTimeString('mr-IN', { hour:'2-digit', minute:'2-digit' });
+  return d.toLocaleDateString(locale()) + ' · ' + d.toLocaleTimeString(locale(), { hour:'2-digit', minute:'2-digit' });
 }
 
 function renderAdmin(){
@@ -1575,38 +1992,38 @@ function renderAdmin(){
   var maxN = rows.length ? rows[0][1] : 1;
   $('#chartBars').innerHTML = rows.length
     ? rows.map(function(r){
-        return '<div class="bar-row"><span class="lbl">' + esc(r[0]) + '</span>' +
+        return '<div class="bar-row"><span class="lbl">' + esc(complaintTypeLabel(r[0])) + '</span>' +
                '<span class="bar-track"><span class="bar-fill" style="width:' + Math.round(r[1]/maxN*100) + '%"></span></span>' +
                '<span class="val">' + r[1] + '</span></div>';
       }).join('')
-    : '<p class="hint">अद्याप तक्रारी नाहीत.</p>';
+    : '<p class="hint">' + esc(T('admin.noComplaints')) + '</p>';
 
   /* complaints tab */
   $('#tab-complaints').innerHTML = state.complaints.length
     ? state.complaints.map(function(c){
         return '<div class="cmp">' +
           '<div class="cmp-head"><strong>' + esc(c.toiletName) + '</strong>' +
-            '<span class="tag ' + c.status + '">' + (c.status === 'open' ? 'प्रलंबित' : 'सोडवली') + '</span></div>' +
-          '<p><b>' + esc(c.type) + '</b></p>' +
+            '<span class="tag ' + c.status + '">' + esc(T(c.status === 'open' ? 'admin.pending' : 'admin.resolved')) + '</span></div>' +
+          '<p><b>' + esc(complaintTypeLabel(c.type)) + '</b></p>' +
           '<p>' + esc(c.text) + '</p>' +
-          (c.photo ? '<img src="' + c.photo + '" alt="तक्रारीचा फोटो">' : '') +
+          (c.photo ? '<img src="' + c.photo + '" alt="' + esc(T('admin.photoAlt')) + '">' : '') +
           '<p class="when">🕒 ' + fmtTime(c.createdAt) + '</p>' +
           (c.status === 'open'
-            ? '<button class="btn" style="margin-top:9px;padding:10px" data-resolve="' + c.id + '">सोडवली म्हणून चिन्हांकित करा</button>'
-            : '<p class="when">✅ ' + fmtTime(c.resolvedAt) + ' रोजी सोडवली</p>') +
+            ? '<button class="btn" style="margin-top:9px;padding:10px" data-resolve="' + c.id + '">' + esc(T('admin.markResolved')) + '</button>'
+            : '<p class="when">' + esc(T('admin.resolvedOn', { time: fmtTime(c.resolvedAt) })) + '</p>') +
         '</div>';
       }).join('')
-    : '<div class="empty"><div class="big">✅</div><p>एकही तक्रार प्रलंबित नाही.</p></div>';
+    : '<div class="empty"><div class="big">✅</div><p>' + esc(T('admin.allClear')) + '</p></div>';
 
   /* toilets tab */
   $('#tab-toilets').innerHTML = state.toilets.map(function(t){
     return '<div class="admin-row">' +
       '<div class="info"><b>' + esc(t.name) + '</b><span>' + esc(t.area) + ' · ★ ' + t.rating.toFixed(1) + '</span></div>' +
       '<div class="acts">' +
-        '<button class="toggle qr" data-qr="' + esc(t.id) + '">📱 QR कोड</button>' +
+        '<button class="toggle qr" data-qr="' + esc(t.id) + '">' + esc(T('admin.qr')) + '</button>' +
         '<button class="toggle" data-toggle="' + esc(t.id) + '" style="color:' + (t.open ? 'var(--ok)' : 'var(--danger)') + '">' +
-          (t.open ? 'चालू' : 'बंद') + '</button>' +
-        '<button class="toggle" data-del="' + esc(t.id) + '" style="color:var(--danger)">काढा</button>' +
+          esc(T(t.open ? 'card.open' : 'card.closed')) + '</button>' +
+        '<button class="toggle" data-del="' + esc(t.id) + '" style="color:var(--danger)">' + esc(T('admin.remove')) + '</button>' +
       '</div>' +
     '</div>';
   }).join('');
@@ -1620,8 +2037,9 @@ $('#tab-complaints').addEventListener('click', function(e){
   c.status = 'resolved';
   c.resolvedAt = Date.now();
   save(LS.complaints, state.complaints);
-  addPoints(PTS.resolved, 'तक्रार सोडवली गेली!');
-  notify('तुमची तक्रार सोडवली गेली ✅', c.toiletName + ' — ' + c.type + '. तुम्हाला +' + PTS.resolved + ' गुण मिळाले!');
+  addPoints(PTS.resolved, T('admin.resolvedPts'));
+  notify(T('admin.resolvedTitle'),
+         T('admin.resolvedBody', { name: c.toiletName, type: complaintTypeLabel(c.type), n: PTS.resolved }));
   renderAdmin();
 
   if (!fb.ok) return;
@@ -1631,7 +2049,7 @@ $('#tab-complaints').addEventListener('click', function(e){
     resolvedBy: state.adminUser || 'admin'
   }).catch(function(err){
     console.warn('तक्रार अद्ययावत करता आली नाही:', err);
-    toast('स्थिती क्लाउडवर बदलली नाही');
+    toast(T('admin.statusFail'));
   });
 });
 
@@ -1650,34 +2068,34 @@ $('#tab-toilets').addEventListener('click', function(e){
       t.open = !t.open;
       save(LS.toilets, state.toilets);
       renderAdmin(); renderCards(); refreshMarkers();
-      toast(t.name + ' आता ' + (t.open ? 'चालू' : 'बंद'));
+      toast(T(t.open ? 'admin.nowOpen' : 'admin.nowClosed', { name: t.name }));
       if (fb.ok){
         fb.db.collection('toilets').doc(t.id).update({ open: t.open })
-          .catch(function(err){ console.warn('स्थिती बदलली नाही:', err); toast('क्लाउडवर बदल पोहोचला नाही'); });
+          .catch(function(err){ console.warn('स्थिती बदलली नाही:', err); toast(T('admin.toggleFail')); });
       }
     }
   }
   if (dl){
     var id = dl.dataset.del;
     var target = state.toilets.filter(function(x){ return x.id === id; })[0];
-    if (target && confirm('"' + target.name + '" यादीतून काढायचे?')){
+    if (target && confirm(T('admin.confirmDel', { name: target.name }))){
       state.toilets = state.toilets.filter(function(x){ return x.id !== id; });
       save(LS.toilets, state.toilets);
       renderAdmin(); renderCards(); refreshMarkers(); fillToiletSelect();
-      toast('टॉयलेट काढले');
+      toast(T('admin.removed'));
       if (fb.ok){
         fb.db.collection('toilets').doc(id).delete()
-          .catch(function(err){ console.warn('काढता आले नाही:', err); toast('क्लाउडवरून काढता आले नाही'); });
+          .catch(function(err){ console.warn('काढता आले नाही:', err); toast(T('admin.delFail')); });
       }
     }
   }
 });
 
 $('#useMyLoc').addEventListener('click', function(){
-  if (!state.pos){ toast('स्थान अद्याप मिळालेले नाही'); return; }
+  if (!state.pos){ toast(T('admin.noLoc')); return; }
   $('#nLat').value = state.pos[0].toFixed(6);
   $('#nLng').value = state.pos[1].toFixed(6);
-  toast('सध्याचे स्थान भरले');
+  toast(T('admin.locFilled'));
 });
 
 $('#addToilet').addEventListener('click', function(){
@@ -1685,8 +2103,8 @@ $('#addToilet').addEventListener('click', function(){
   var area = $('#nArea').value.trim();
   var lat = parseFloat($('#nLat').value);
   var lng = parseFloat($('#nLng').value);
-  if (!name || !area){ toast('नाव आणि परिसर आवश्यक आहे'); return; }
-  if (isNaN(lat) || isNaN(lng)){ toast('अक्षांश / रेखांश योग्य भरा'); return; }
+  if (!name || !area){ toast(T('admin.needName')); return; }
+  if (isNaN(lat) || isNaN(lng)){ toast(T('admin.needLatLng')); return; }
 
   var doc = {
     name: name, area: area, lat: lat, lng: lng,
@@ -1703,10 +2121,10 @@ $('#addToilet').addEventListener('click', function(){
   if (fb.ok){
     /* onSnapshot नवीन नोंद आपोआप यादीत आणेल */
     fb.db.collection('toilets').add(doc).then(function(){
-      toast('नवीन टॉयलेट जोडले ✅');
+      toast(T('admin.added'));
     }).catch(function(err){
       console.warn('टॉयलेट जोडता आले नाही:', err);
-      toast('क्लाउडवर जोडता आले नाही');
+      toast(T('admin.addFail'));
     });
     return;
   }
@@ -1716,7 +2134,7 @@ $('#addToilet').addEventListener('click', function(){
   state.toilets.push(local);
   save(LS.toilets, state.toilets);
   renderCards(); renderAdmin(); refreshMarkers(); fillToiletSelect();
-  toast('नवीन टॉयलेट जोडले ✅');
+  toast(T('admin.added'));
 });
 
 /* =====================================================================
@@ -1745,14 +2163,14 @@ function openQr(t){
   qrTarget = t;
   var link = toiletQrUrl(t.id);
   $('#qrTitle').textContent = t.name;
-  $('#qrSub').textContent = t.area + ' · आयडी: ' + t.id;
+  $('#qrSub').textContent = T('qr.idLabel', { area: t.area, id: t.id });
   $('#qrLink').textContent = link;
   $('#qrWarn').hidden = !!appBaseUrl();
 
   var img = $('#qrImg');
-  img.alt = t.name + ' — तक्रारीसाठी QR कोड';
+  img.alt = T('qr.alt', { name: t.name });
   img.removeAttribute('src');           /* आधीचा कोड क्षणभरही दिसू नये */
-  $('#qrStatus').textContent = 'QR कोड तयार होत आहे…';
+  $('#qrStatus').textContent = T('qr.building');
   $('#qrStatus').hidden = false;
   img.src = qrImageUrl(link, 300);
 
@@ -1762,7 +2180,7 @@ function openQr(t){
 $('#qrImg').addEventListener('load', function(){ $('#qrStatus').hidden = true; });
 $('#qrImg').addEventListener('error', function(){
   $('#qrStatus').hidden = false;
-  $('#qrStatus').textContent = 'QR कोड मिळाला नाही — इंटरनेट तपासा.';
+  $('#qrStatus').textContent = T('qr.failed');
 });
 
 $('#qrClose').addEventListener('click', function(){ $('#qrModal').classList.remove('show'); });
@@ -1775,7 +2193,7 @@ $('#qrDownload').addEventListener('click', function(){
   if (!qrTarget) return;
   var t = qrTarget;
   var src = qrImageUrl(toiletQrUrl(t.id), 600);
-  toast('QR कोड डाउनलोड होत आहे…');
+  toast(T('qr.downloading'));
 
   fetch(src, { mode:'cors' }).then(function(res){
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -1789,11 +2207,11 @@ $('#qrDownload').addEventListener('click', function(){
     a.click();
     a.remove();
     setTimeout(function(){ URL.revokeObjectURL(obj); }, 5000);
-    toast('QR कोड डाउनलोड झाला ✅');
+    toast(T('qr.downloaded'));
   }).catch(function(err){
     console.warn('QR डाउनलोड अयशस्वी:', err);
     window.open(src, '_blank', 'noopener');
-    toast('QR नवीन टॅबमध्ये उघडला — दाबून सेव्ह करा');
+    toast(T('qr.newTab'));
   });
 });
 
@@ -1803,10 +2221,10 @@ $('#qrPrint').addEventListener('click', function(){
   var t = qrTarget;
   var link = toiletQrUrl(t.id);
   var win = window.open('', '_blank');
-  if (!win){ toast('प्रिंटसाठी पॉपअपला परवानगी द्या'); return; }
+  if (!win){ toast(T('qr.popupBlocked')); return; }
 
   win.document.write(
-    '<!DOCTYPE html><html lang="mr"><head><meta charset="UTF-8">' +
+    '<!DOCTYPE html><html lang="' + state.lang + '"><head><meta charset="UTF-8">' +
     '<title>QR — ' + esc(t.name) + '</title><style>' +
     '@page{size:A4;margin:14mm}' +
     'body{font-family:"Noto Sans Devanagari","Nirmala UI",sans-serif;margin:0;padding:18px;' +
@@ -1822,13 +2240,13 @@ $('#qrPrint').addEventListener('click', function(){
       'border-radius:12px;padding:12px 10px;margin-bottom:12px}' +
     '.url{font-size:10.5px;color:#5b6b7a;word-break:break-all;direction:ltr}' +
     '</style></head><body><div class="wrap">' +
-      '<div class="top">अहिल्यानगर महानगरपालिका</div>' +
-      '<h1>टॉयलेट सेवा</h1>' +
-      '<div class="tag">स्वच्छतेची तक्रार — थेट महानगरपालिकेकडे</div>' +
-      '<img src="' + esc(qrImageUrl(link, 600)) + '" alt="QR कोड">' +
+      '<div class="top">' + esc(T('app.sub')) + '</div>' +
+      '<h1>' + esc(T('app.title')) + '</h1>' +
+      '<div class="tag">' + esc(T('qr.posterTag')) + '</div>' +
+      '<img src="' + esc(qrImageUrl(link, 600)) + '" alt="' + esc(T('qr.heading')) + '">' +
       '<h2>' + esc(t.name) + '</h2>' +
       '<div class="area">' + esc(t.area) + '</div>' +
-      '<div class="cta">📱 अस्वच्छता किंवा समस्या असल्यास<br>हा QR कोड स्कॅन करून तक्रार नोंदवा</div>' +
+      '<div class="cta">' + T('qr.posterCta') + '</div>' +
       '<div class="url">' + esc(link) + '</div>' +
     '</div><scr' + 'ipt>' +
       'var i=document.images[0];' +
@@ -1872,6 +2290,7 @@ window.addEventListener('hashchange', function(){
    Boot
    ===================================================================== */
 applyTheme();
+applyLanguage();
 renderPoints(false);
 renderCards();
 fillToiletSelect();
@@ -1889,7 +2308,7 @@ if (state.pendingToiletId || state.qrToiletId){
   setTimeout(function(){
     if (state.pendingToiletId){
       state.pendingToiletId = '';
-      toast('QR मधील शौचालय सापडले नाही — यादीतून निवडा');
+      toast(T('qr.notFound'));
     }
   }, 8000);
 }
