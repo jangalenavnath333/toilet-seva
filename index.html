@@ -155,6 +155,13 @@ a{color:var(--brand)}
 .pill.dist{background:var(--brand-soft);color:var(--brand-ink)}
 :root[data-theme="dark"] .pill.dist{color:var(--brand)}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .pill.dist{color:var(--brand)}}
+/* Distance badge — prominent, above toilet name */
+.dist-badge{display:inline-flex;align-items:center;gap:5px;background:var(--brand);color:#fff;font-size:13px;font-weight:800;padding:4px 12px;border-radius:20px;margin-bottom:6px;letter-spacing:.01em}
+.dist-badge .dist-sub{font-size:10px;font-weight:500;opacity:.85}
+/* Nearest-first banner */
+.nearest-banner{display:none;align-items:center;gap:7px;background:var(--brand-soft);border-left:3px solid var(--brand);padding:8px 14px;border-radius:8px;margin-bottom:10px;font-size:12.5px;font-weight:700;color:var(--brand-ink)}
+.nearest-banner.active{display:flex}
+:root[data-theme="dark"] .nearest-banner{color:var(--brand)}
 .facilities{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
 .fac{font-size:11.5px;padding:3px 9px;border-radius:7px;border:1px dashed var(--line);color:var(--muted)}
 .actions{display:flex;gap:8px;margin-top:12px}
@@ -402,6 +409,10 @@ a{color:var(--brand)}
   </div>
 
   <div class="result-line" id="resultLine"></div>
+  <div class="nearest-banner" id="nearestBanner">
+    <span>📍</span>
+    <span>Nearest first<span class="bil-sub">जवळचे आधी</span></span>
+  </div>
   <div id="cards"></div>
 </main>
 
@@ -1499,9 +1510,17 @@ function renderCards(){
     return;
   }
 
+  // Show/hide nearest-first banner
+  var banner = $('#nearestBanner');
+  if (banner) banner.classList.toggle('active', !!state.pos);
+
   wrap.innerHTML = list.map(function(t){
-    var d = fmtDistance(distanceTo(t));
+    var dKm = distanceTo(t);
+    var d = fmtDistance(dKm);
+    // Prominent distance badge: green if <500m, orange if <2km, else normal
+    var distColor = dKm === null ? '' : dKm < 0.5 ? 'background:#16a34a' : dKm < 2 ? 'background:#d97706' : '';
     return '<article class="card">' +
+      (d ? '<div class="dist-badge" style="' + distColor + '">🚶 ' + esc(d) + '<span class="dist-sub">' + (dKm < 0.5 ? ' · Very close!' : '') + '</span></div>' : '') +
       '<div class="card-head">' +
         '<div style="flex:1;min-width:0">' +
           '<h3 class="name-en">' + esc(enName(t) || t.name) + '</h3>' +
@@ -1513,7 +1532,6 @@ function renderCards(){
         '<span class="status' + (t.open ? '' : ' closed') + '">' + TB(t.open ? 'card.open' : 'card.closed') + '</span>' +
       '</div>' +
       '<div class="meta">' +
-        (d ? '<span class="pill dist">🚶 ' + esc(d) + '</span>' : '') +
         '<span class="pill star">★ ' + t.rating.toFixed(1) + ' (' + t.votes + ')</span>' +
         '<span class="pill">' + typeLabel(t) + '</span>' +
         (t.divyang ? '<span class="pill">' + TB('card.divyang') + '</span>' : '') +
@@ -1698,7 +1716,7 @@ function initMap(){
   });
 
   map = L.map('map', { zoomControl:true, attributionControl:true })
-         .setView(state.pos || AHILYANAGAR, 13);
+         .setView(state.pos || AHILYANAGAR, state.pos ? 15 : 14);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '&copy; OpenStreetMap'
@@ -1707,6 +1725,16 @@ function initMap(){
   map.on('zoomend', refreshMarkers);
   refreshMarkers();
   updateMeMarker();
+
+  // सगळे markers दिसतील असं fitBounds (GPS नसेल तर)
+  if (!state.pos && state.toilets.length > 0){
+    var lats = state.toilets.map(function(t){ return t.lat; });
+    var lngs = state.toilets.map(function(t){ return t.lng; });
+    map.fitBounds([
+      [Math.min.apply(null,lats)-0.005, Math.min.apply(null,lngs)-0.005],
+      [Math.max.apply(null,lats)+0.005, Math.max.apply(null,lngs)+0.005]
+    ], { maxZoom: 14 });
+  }
 }
 
 /* सर्व टॉयलेटसाठी एकच चिन्ह — initMap() मध्ये तयार होते */
