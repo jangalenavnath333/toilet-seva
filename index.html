@@ -324,6 +324,30 @@ a{color:var(--brand)}
 .toggle{padding:7px 12px;border-radius:var(--radius-sm);font-size:12.5px;font-weight:600;border:1px solid var(--line);background:var(--card)}
 .toggle.qr{color:var(--info);border-color:var(--info)}
 
+/* ============ स्थान दुरुस्ती — Location fixing ============ */
+.locate-help{background:var(--brand-soft);border:1px solid var(--line);border-radius:var(--radius);padding:13px 15px;margin-bottom:12px;font-size:13px;color:var(--brand-ink)}
+:root[data-theme="dark"] .locate-help{color:var(--brand)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .locate-help{color:var(--brand)}}
+.locate-help b{display:block;font-size:14px;margin-bottom:7px}
+.locate-help ol{margin:0;padding-inline-start:20px}
+.locate-help li{margin-bottom:5px;line-height:1.45}
+.locate-help .bil-sub{opacity:.7}
+
+.locate-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.locate-bar .toggle{font-size:13px;padding:9px 14px;line-height:1.25;text-align:center}
+
+#locateMap{height:340px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;margin-bottom:12px}
+
+.locate-coords{display:flex;gap:10px;margin-bottom:12px}
+.locate-coords>*{flex:1}
+.locate-coords input{font-variant-numeric:tabular-nums;font-size:14px}
+
+.locate-actions{display:flex;gap:10px;margin-bottom:8px}
+.locate-actions .btn{margin:0;font-size:14px;line-height:1.25}
+
+.locate-pin{filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
+.locate-row-done{color:var(--ok)}
+
 /* ============ QR कोड ============ */
 .qr-notice{
   display:flex;gap:10px;align-items:flex-start;margin-bottom:16px;padding:13px 14px;
@@ -553,11 +577,46 @@ a{color:var(--brand)}
     <div class="tabs" role="tablist">
       <button role="tab" aria-selected="true" data-tab="complaints" data-i18n="admin.tabComplaints">तक्रारी</button>
       <button role="tab" aria-selected="false" data-tab="toilets" data-i18n="admin.tabToilets">टॉयलेट यादी</button>
+      <button role="tab" aria-selected="false" data-tab="locate">📍 स्थान<span class="bil-sub">Locations</span></button>
       <button role="tab" aria-selected="false" data-tab="add" data-i18n="admin.tabAdd">नवीन नोंद</button>
     </div>
 
     <div id="tab-complaints"></div>
     <div id="tab-toilets" hidden></div>
+
+    <!-- ===== स्थान दुरुस्ती — Location fixing ===== -->
+    <div id="tab-locate" hidden>
+      <div class="locate-help">
+        <b>Fix toilet locations<span class="bil-sub">शौचालयांची जागा दुरुस्त करा</span></b>
+        <ol>
+          <li>Pick a toilet from the list below<span class="bil-sub">खालच्या यादीतून शौचालय निवडा</span></li>
+          <li>Drag the red pin to the exact spot on the map<span class="bil-sub">नकाशावर लाल पिन अचूक जागी ओढा</span></li>
+          <li>Press Save<span class="bil-sub">सेव्ह दाबा</span></li>
+        </ol>
+      </div>
+
+      <div class="locate-bar">
+        <button id="autoLocateBtn" class="toggle">🔍 Auto-locate all<span class="bil-sub">सर्व आपोआप शोधा</span></button>
+        <span id="autoLocateStatus" class="hint" style="margin:0"></span>
+      </div>
+
+      <div class="field" style="margin-bottom:10px">
+        <label for="locateSelect">Toilet<span class="bil-sub">शौचालय</span></label>
+        <select id="locateSelect"></select>
+      </div>
+
+      <div id="locateMap"></div>
+
+      <div class="locate-coords">
+        <div class="field" style="margin:0"><label for="locLat">Latitude<span class="bil-sub">अक्षांश</span></label><input id="locLat" type="number" step="0.000001"></div>
+        <div class="field" style="margin:0"><label for="locLng">Longitude<span class="bil-sub">रेखांश</span></label><input id="locLng" type="number" step="0.000001"></div>
+      </div>
+
+      <div class="locate-actions">
+        <button id="locSearchBtn" class="btn ghost">🔍 Search this address<span class="bil-sub">हा पत्ता शोधा</span></button>
+        <button id="locSaveBtn" class="btn">💾 Save location<span class="bil-sub">स्थान सेव्ह करा</span></button>
+      </div>
+    </div>
 
     <div id="tab-add" hidden>
       <div class="field"><label for="nName" data-i18n="admin.nName">टॉयलेटचे नाव</label><input id="nName" data-i18n-ph="admin.nNamePh" placeholder="उदा. सार्वजनिक शौचालय, गांधी मैदान"></div>
@@ -1123,6 +1182,36 @@ var SEED_TOILETS = [
     type:'both', divyang:false, open:true, rating:0, votes:0, timing:'24 तास', facilities:['पाणी','वीज'] }
 ];
 
+/* ---------- अधिकृत यादीतील मूळ पत्ते — geocoding साठी ---------- */
+var TOILET_ADDRESSES = {
+  t1:  'Sanjay Nagar, Ahilyanagar',
+  t2:  'Shantinagar, Kedarvasti, Ahilyanagar',
+  t3:  'Zulelal Mandir, Tarakpur, Ahilyanagar',
+  t4:  'Savedi Gavthan, Ahilyanagar',
+  t5:  'Maliwada, Ahilyanagar',
+  t6:  'Kothi Road, Ahilyanagar',
+  t7:  'Nagapur Gavthan, Ahilyanagar',
+  t8:  'Ahilyanagar Railway Station, Ahilyanagar',
+  t9:  'Nepti Road, Kedgaon, Ahilyanagar',
+  t10: 'New Arts College, Delhi Gate Road, Ahilyanagar',
+  t11: 'Jalaram Bakery, Nagar Pune Road, Kedgaon, Ahilyanagar',
+  t12: 'Tophkhana, Chitale Road, Ahilyanagar',
+  t13: 'Gandhi Maidan, Ahilyanagar',
+  t14: 'Old Municipal Corporation Office, Maliwada, Ahilyanagar',
+  t15: 'Maliwada Bus Stand, Ahilyanagar',
+  t16: 'Gokulwadi, Ramwadi, Ahilyanagar',
+  t17: 'Swastik Chowk, Nagar Pune Highway, Ahilyanagar',
+  t18: 'Tarakpur Bus Stand, Ahilyanagar',
+  t19: 'ITI College, Chanakya Chowk, Burudgaon Road, Ahilyanagar',
+  t20: 'Gadakh Nala, Ramwadi, Ahilyanagar',
+  t21: 'Professor Chowk, Savedi, Ahilyanagar',
+  t22: 'Balika Ashram Road, Ahilyanagar',
+  t23: 'Rangbhavan, Ahilyanagar',
+  t24: 'Ganj Bazar, Ahilyanagar',
+  t25: 'Manik Chowk, Ahilyanagar',
+  t26: 'Malhar Chowk, Railway Station Road, Ahilyanagar'
+};
+
 /* ---------- Seed version migration: नवीन 26 real toilets force-load करा ---------- */
 (function migrateSeed(){
   var SEED_VERSION = '2026-v4-geocoded';
@@ -1379,6 +1468,152 @@ function seedToilets(){
   });
 }
 
+/* =====================================================================
+   स्थान दुरुस्ती — Location editor (draggable pin + geocoding)
+   Nominatim थेट वापरकर्त्याच्या browser मधून वापरतो.
+   ===================================================================== */
+var locMap = null, locPin = null, locCurrentId = null;
+
+function toiletAddress(t){
+  return TOILET_ADDRESSES[t.id] ||
+         ((t.englishName || t.name) + ', ' + (t.englishArea || t.area) + ', Ahilyanagar');
+}
+
+/* Nominatim शोध — एकच निकाल, Ahilyanagar परिसरात मर्यादित */
+function geocodeAddress(addr){
+  var box = '74.66,19.16,74.82,19.03'; // left,top,right,bottom
+  var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1' +
+            '&viewbox=' + box + '&countrycodes=in&q=' + encodeURIComponent(addr);
+  return fetch(url, { headers:{ 'Accept':'application/json' } })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (!d || !d.length) return null;
+      return { lat: parseFloat(d[0].lat), lng: parseFloat(d[0].lon), label: d[0].display_name };
+    });
+}
+
+function fillLocateSelect(){
+  var sel = $('#locateSelect');
+  if (!sel) return;
+  var prev = sel.value;
+  sel.innerHTML = state.toilets.map(function(t){
+    return '<option value="' + esc(t.id) + '">' +
+           esc((t.englishName || t.name) + ' — ' + (t.englishArea || t.area)) + '</option>';
+  }).join('');
+  if (prev && state.toilets.some(function(t){ return t.id === prev; })) sel.value = prev;
+}
+
+function initLocateMap(){
+  if (locMap) { setTimeout(function(){ locMap.invalidateSize(); }, 80); return; }
+  if (typeof L === 'undefined') return;
+
+  locMap = L.map('locateMap', { zoomControl:true }).setView(AHILYANAGAR, 14);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom:19, attribution:'&copy; OpenStreetMap'
+  }).addTo(locMap);
+
+  locPin = L.marker(AHILYANAGAR, {
+    draggable: true,
+    icon: L.divIcon({
+      className:'locate-pin',
+      html:'<div style="font-size:34px;line-height:1">📍</div>',
+      iconSize:[34,34], iconAnchor:[17,32]
+    })
+  }).addTo(locMap);
+
+  locPin.on('dragend', function(){
+    var ll = locPin.getLatLng();
+    $('#locLat').value = ll.lat.toFixed(6);
+    $('#locLng').value = ll.lng.toFixed(6);
+  });
+
+  /* नकाशावर कुठेही click केले तरी pin तिथे जाईल */
+  locMap.on('click', function(e){
+    locPin.setLatLng(e.latlng);
+    $('#locLat').value = e.latlng.lat.toFixed(6);
+    $('#locLng').value = e.latlng.lng.toFixed(6);
+  });
+
+  setTimeout(function(){ locMap.invalidateSize(); }, 120);
+}
+
+function loadLocateToilet(id){
+  var t = state.toilets.filter(function(x){ return x.id === id; })[0];
+  if (!t || !locMap) return;
+  locCurrentId = id;
+  var ll = [t.lat, t.lng];
+  locPin.setLatLng(ll);
+  locMap.setView(ll, 16);
+  $('#locLat').value = Number(t.lat).toFixed(6);
+  $('#locLng').value = Number(t.lng).toFixed(6);
+}
+
+function saveLocateToilet(){
+  var lat = parseFloat($('#locLat').value);
+  var lng = parseFloat($('#locLng').value);
+  if (!isFinite(lat) || !isFinite(lng)){ toast(T('admin.needLatLng')); return; }
+
+  var t = state.toilets.filter(function(x){ return x.id === locCurrentId; })[0];
+  if (!t) return;
+  t.lat = lat; t.lng = lng;
+  save(LS.toilets, state.toilets);
+  renderCards(); refreshMarkers(); renderAdmin();
+  toast('✅ ' + (t.englishName || t.name) + ' — स्थान सेव्ह झाले');
+
+  if (fb.ok){
+    fb.lastToiletsSig = null;
+    fb.db.collection('toilets').doc(t.id).update({ lat: lat, lng: lng })
+      .catch(function(err){ console.warn('स्थान क्लाउडवर गेले नाही:', err); toast(T('admin.toggleFail')); });
+  }
+}
+
+/* सर्व शौचालये एकामागोमाग geocode करा (Nominatim = 1 विनंती/सेकंद) */
+function autoLocateAll(){
+  var btn = $('#autoLocateBtn'), st = $('#autoLocateStatus');
+  if (!confirm('सर्व ' + state.toilets.length + ' शौचालयांची जागा नकाशावरून आपोआप शोधायची?\n\n(यास सुमारे ' + state.toilets.length + ' सेकंद लागतील)')) return;
+  btn.disabled = true;
+
+  var list = state.toilets.slice();
+  var i = 0, found = 0, missed = [];
+
+  function step(){
+    if (i >= list.length){
+      btn.disabled = false;
+      st.textContent = '✅ ' + found + ' सापडली' + (missed.length ? ' · ' + missed.length + ' नाही सापडली' : '');
+      save(LS.toilets, state.toilets);
+      renderCards(); refreshMarkers(); renderAdmin();
+      if (locCurrentId) loadLocateToilet(locCurrentId);
+      if (missed.length){
+        toast('या शौचालयांची जागा हाताने ठरवा: ' + missed.slice(0,3).join(', ') + (missed.length>3 ? '…' : ''));
+      }
+      /* क्लाउडवर एकत्र पाठवा */
+      if (fb.ok){
+        fb.lastToiletsSig = null;
+        var batch = fb.db.batch();
+        state.toilets.forEach(function(t){
+          batch.update(fb.db.collection('toilets').doc(t.id), { lat:t.lat, lng:t.lng });
+        });
+        batch.commit().catch(function(err){ console.warn('batch फसला:', err); });
+      }
+      return;
+    }
+
+    var t = list[i];
+    st.textContent = (i+1) + '/' + list.length + ' — ' + (t.englishArea || t.area);
+
+    geocodeAddress(toiletAddress(t)).then(function(res){
+      if (res){ t.lat = res.lat; t.lng = res.lng; found++; }
+      else missed.push(t.englishArea || t.area);
+    }).catch(function(){
+      missed.push(t.englishArea || t.area);
+    }).then(function(){
+      i++;
+      setTimeout(step, 1100); // Nominatim चा दर पाळा
+    });
+  }
+  step();
+}
+
 /* ---------- 26 Real Toilets Force Reseed ---------- */
 function forceReseedToilets(){
   if (!fb.ok) return;
@@ -1599,6 +1834,55 @@ function visibleToilets(){
   return list;
 }
 
+/* GPS हलल्यावर संपूर्ण यादी पुन्हा लिहू नका — फक्त अंतराचा आकडा जागच्या जागी बदला.
+   क्रम खरोखर बदलला तरच cards हलवा. यामुळे screen अजिबात blink होत नाही. */
+function updateDistances(){
+  var wrap = $('#cards');
+  if (!wrap || !wrap.firstElementChild) { renderCards(); return; }
+
+  var cards = $all('#cards > .card');
+  if (!cards.length){ renderCards(); return; }
+
+  var list = visibleToilets();
+
+  /* यादीतील घटक बदलले असतील (शोध/फिल्टर) तर पूर्ण पुन्हा लिहा */
+  if (list.length !== cards.length){ renderCards(); return; }
+  for (var i = 0; i < cards.length; i++){
+    if (!list.some(function(t){ return t.id === cards[i].dataset.id; })){ renderCards(); return; }
+  }
+
+  /* १) प्रत्येक card वरचा अंतराचा आकडा जागच्या जागी बदला */
+  cards.forEach(function(card){
+    var t = state.toilets.filter(function(x){ return x.id === card.dataset.id; })[0];
+    if (!t) return;
+    var dKm = distanceTo(t);
+    var badge = card.querySelector('.dist-badge');
+    if (dKm === null){ if (badge) badge.remove(); return; }
+
+    var text = '🚶 ' + fmtDistance(dKm);
+    var color = dKm < 0.5 ? '#16a34a' : dKm < 2 ? '#d97706' : '';
+    var extra = dKm < 0.5 ? ' · Very close!' : '';
+
+    if (!badge){ renderCards(); return; }
+    /* मजकूर तोच असेल तर DOM ला हात लावू नका */
+    if (badge.firstChild && badge.firstChild.nodeValue !== text){
+      badge.firstChild.nodeValue = text;
+    }
+    if (badge.style.background !== color) badge.style.background = color;
+    var sub = badge.querySelector('.dist-sub');
+    if (sub && sub.textContent !== extra) sub.textContent = extra;
+  });
+
+  /* २) जवळच्या क्रमाने लावा — क्रम बदलला असेल तरच नोड हलवा */
+  var wanted = list.map(function(t){ return t.id; }).join(',');
+  var current = cards.map(function(c){ return c.dataset.id; }).join(',');
+  if (wanted !== current){
+    var byId = {};
+    cards.forEach(function(c){ byId[c.dataset.id] = c; });
+    list.forEach(function(t){ if (byId[t.id]) wrap.appendChild(byId[t.id]); });
+  }
+}
+
 function renderCards(){
   var list = visibleToilets();
   var wrap = $('#cards');
@@ -1625,7 +1909,7 @@ function renderCards(){
     var d = fmtDistance(dKm);
     // Prominent distance badge: green if <500m, orange if <2km, else normal
     var distColor = dKm === null ? '' : dKm < 0.5 ? 'background:#16a34a' : dKm < 2 ? 'background:#d97706' : '';
-    return '<article class="card">' +
+    return '<article class="card" data-id="' + esc(t.id) + '">' +
       (d ? '<div class="dist-badge" style="' + distColor + '">🚶 ' + esc(d) + '<span class="dist-sub">' + (dKm < 0.5 ? ' · Very close!' : '') + '</span></div>' : '') +
       '<div class="card-head">' +
         '<div style="flex:1;min-width:0">' +
@@ -1691,7 +1975,15 @@ $('#chips').addEventListener('click', function(e){
    Navigate + WhatsApp share
    ===================================================================== */
 function navigateTo(t){
-  var url = 'https://www.google.com/maps/dir/?api=1&destination=' + t.lat + ',' + t.lng;
+  /* नावाऐवजी नेमके अक्षांश-रेखांश पाठवा — Google Maps चुकीची जागा शोधू नये म्हणून */
+  var dest = Number(t.lat).toFixed(6) + ',' + Number(t.lng).toFixed(6);
+  var url = 'https://www.google.com/maps/dir/?api=1' +
+            '&destination=' + dest +
+            '&travelmode=walking';
+  /* स्वतःचे स्थान माहीत असेल तर सुरुवातीचा बिंदूही द्या */
+  if (state.pos){
+    url += '&origin=' + state.pos[0].toFixed(6) + ',' + state.pos[1].toFixed(6);
+  }
   window.open(url, '_blank', 'noopener');
 }
 function shareWhatsApp(t){
@@ -2332,8 +2624,49 @@ $('.tabs').addEventListener('click', function(e){
   if (!b) return;
   state.adminTab = b.dataset.tab;
   $all('.tabs button').forEach(function(x){ x.setAttribute('aria-selected', String(x === b)); });
-  ['complaints','toilets','add'].forEach(function(t){
+  ['complaints','toilets','locate','add'].forEach(function(t){
     $('#tab-' + t).hidden = (t !== state.adminTab);
+  });
+  if (state.adminTab === 'locate'){
+    fillLocateSelect();
+    initLocateMap();
+    setTimeout(function(){ loadLocateToilet($('#locateSelect').value); }, 150);
+  }
+});
+
+/* ---------- स्थान दुरुस्ती — event handlers ---------- */
+$('#locateSelect').addEventListener('change', function(e){ loadLocateToilet(e.target.value); });
+$('#locSaveBtn').addEventListener('click', saveLocateToilet);
+$('#autoLocateBtn').addEventListener('click', autoLocateAll);
+
+$('#locSearchBtn').addEventListener('click', function(){
+  var t = state.toilets.filter(function(x){ return x.id === locCurrentId; })[0];
+  if (!t) return;
+  var btn = this;
+  btn.disabled = true;
+  var addr = toiletAddress(t);
+  toast('🔍 शोधत आहे: ' + addr);
+
+  geocodeAddress(addr).then(function(res){
+    if (!res){ toast('❌ सापडले नाही — नकाशावर pin हाताने ठेवा'); return; }
+    locPin.setLatLng([res.lat, res.lng]);
+    locMap.setView([res.lat, res.lng], 17);
+    $('#locLat').value = res.lat.toFixed(6);
+    $('#locLng').value = res.lng.toFixed(6);
+    toast('✅ सापडले — बरोबर असेल तर सेव्ह करा');
+  }).catch(function(){
+    toast('❌ शोध अयशस्वी — इंटरनेट तपासा');
+  }).then(function(){ btn.disabled = false; });
+});
+
+/* अक्षांश/रेखांश हाताने बदलले तर pin हलवा */
+['#locLat','#locLng'].forEach(function(sel){
+  $(sel).addEventListener('change', function(){
+    var lat = parseFloat($('#locLat').value), lng = parseFloat($('#locLng').value);
+    if (isFinite(lat) && isFinite(lng) && locPin){
+      locPin.setLatLng([lat,lng]);
+      locMap.setView([lat,lng], locMap.getZoom());
+    }
   });
 });
 
