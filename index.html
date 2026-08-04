@@ -1745,7 +1745,7 @@ var lastGpsShown = 0;
 
 function applyPosition(p){
   var strip = $('#gpsStrip');
-  var moved = !state.pos || haversine(state.pos[0], state.pos[1], p.coords.latitude, p.coords.longitude) > 0.02;
+  var first = !state.pos;
   state.pos = [p.coords.latitude, p.coords.longitude];
   state.accuracy = p.coords.accuracy;
   strip.classList.add('live');
@@ -1758,7 +1758,10 @@ function applyPosition(p){
     setGps('gps.live', { n: Math.round(p.coords.accuracy) }, true);
   }
 
-  if (moved){ renderCards(); }
+  /* पहिल्यांदाच स्थान मिळाले तरच पूर्ण यादी लिहा; नंतर फक्त अंतर बदला — blink टाळण्यासाठी */
+  if (first) renderCards();
+  else updateDistances();
+
   updateMeMarker();
 }
 
