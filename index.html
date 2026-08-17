@@ -555,6 +555,15 @@ a{color:var(--brand)}
       <button class="toggle" id="adminLogout" data-i18n="admin.logout">बाहेर पडा</button>
     </div>
 
+    <!-- स्थानिक मोड इशारा -->
+    <div id="localAdminWarn" style="background:#fff3cd;border:1px solid #ffc107;border-radius:10px;padding:11px 14px;margin-bottom:12px;display:none">
+      <div style="font-weight:700;font-size:13px;color:#856404">⚠️ Local admin mode<span style="display:block;font-size:11px;font-weight:500;margin-top:2px">स्थानिक प्रशासन मोड</span></div>
+      <div style="font-size:11.5px;color:#856404;margin-top:5px;line-height:1.45">
+        Only complaints filed from <b>this device</b> are shown. To see complaints from all citizens, log in with the Firebase admin account.
+        <span style="display:block;margin-top:3px">फक्त <b>या उपकरणावरून</b> केलेल्या तक्रारी दिसत आहेत. सर्व नागरिकांच्या तक्रारी पाहण्यासाठी Firebase खात्याने लॉगिन करा.</span>
+      </div>
+    </div>
+
     <!-- 26 Real Toilet Data Upload Button -->
     <div id="reseedBanner" style="background:#fff3cd;border:1px solid #ffc107;border-radius:10px;padding:12px 14px;margin-bottom:14px;display:none">
       <div style="font-weight:700;font-size:13px;color:#856404;margin-bottom:6px">⚠️ Firestore मध्ये जुना data आहे — 26 नवीन toilets upload करा</div>
@@ -1654,10 +1663,14 @@ function forceReseedToilets(){
 function watchAuth(){
   /* Firebase असताना localStorage मधील जुना admin flag ग्राह्य धरू नका */
   state.isAdmin = false;
+  state.localAdmin = false;
   save(LS.admin, false);
   setAdminUI();
 
   fb.auth.onAuthStateChanged(function(user){
+    /* स्थानिक पासवर्डने लॉगिन केले असेल तर Firebase ने बाहेर काढू नये */
+    if (!user && state.localAdmin) return;
+
     state.isAdmin = !!user;
     state.adminUser = user ? (user.email || '') : '';
     save(LS.admin, state.isAdmin);
@@ -2526,6 +2539,7 @@ $('#submitComplaint').addEventListener('click', function(){
   fb.db.collection('complaints').add(record).then(function(ref){
     localRecord.id = ref.id;          // onSnapshot आल्यावर दुबार दिसू नये
     save(LS.complaints, state.complaints);
+    if (state.isAdmin) renderAdmin();
   }).catch(function(err){
     console.warn('तक्रार साठवता आली नाही:', err);
     toast(T('comp.savedLocal'));
@@ -2563,15 +2577,23 @@ $('#adminLoginBtn').addEventListener('click', function(){
 
   /* Local password check — Firebase असो वा नसो, password बरोबर असेल तर login */
   if (pass === ADMIN_PASSWORD){
-    state.isAdmin = true;
-    save(LS.admin, true);
-    $('#adminPass').value = '';
-    setAdminUI();
-    toast(T('admin.offlineMode'));
-    // Firebase Auth पण try करा background मध्ये
+    /* आधी खरे Firebase Auth करून पाहा — जमले तर सर्व उपकरणांवरील तक्रारी दिसतील */
     if (fb.ok && email){
-      fb.auth.signInWithEmailAndPassword(email, pass).catch(function(){});
+      var b = $('#adminLoginBtn');
+      b.disabled = true; b.textContent = T('admin.checking');
+      fb.auth.signInWithEmailAndPassword(email, pass).then(function(){
+        state.localAdmin = false;
+        $('#adminPass').value = '';
+        toast(T('admin.welcome'));
+      }).catch(function(){
+        /* Firebase खाते जुळले नाही — स्थानिक प्रशासन मोड */
+        enterLocalAdmin();
+      }).then(function(){
+        b.disabled = false; b.textContent = T('admin.login');
+      });
+      return;
     }
+    enterLocalAdmin();
     return;
   }
 
@@ -2596,6 +2618,9 @@ $('#adminLoginBtn').addEventListener('click', function(){
   btn.textContent = T('admin.checking');
 
   fb.auth.signInWithEmailAndPassword(email, pass).then(function(){
+    state.localAdmin = false;
+    var warn = $('#localAdminWarn');
+    if (warn) warn.style.display = 'none';
     $('#adminPass').value = '';
     toast(T('admin.welcome'));
   }).catch(function(err){
@@ -2606,6 +2631,26 @@ $('#adminLoginBtn').addEventListener('click', function(){
     btn.textContent = T('admin.login');
   });
 });
+/* स्थानिक प्रशासन मोड — Firebase खाते नसताना.
+   या मोडमध्ये फक्त याच उपकरणावरून केलेल्या तक्रारी दिसतात. */
+function enterLocalAdmin(){
+  state.isAdmin = true;
+  state.localAdmin = true;
+  state.adminUser = '';
+  save(LS.admin, true);
+  $('#adminPass').value = '';
+
+  /* याच उपकरणावर साठवलेल्या तक्रारी दाखवा */
+  state.complaints = load(LS.complaints, []);
+
+  setAdminUI();
+  renderAdmin();
+  toast(T('admin.offlineMode'));
+
+  var warn = $('#localAdminWarn');
+  if (warn) warn.style.display = 'block';
+}
+
 $('#adminPass').addEventListener('keydown', function(e){ if (e.key === 'Enter') $('#adminLoginBtn').click(); });
 
 $('#reseedBtn').addEventListener('click', function(){
@@ -2615,11 +2660,19 @@ $('#reseedBtn').addEventListener('click', function(){
 });
 
 $('#adminLogout').addEventListener('click', function(){
+  var warn = $('#localAdminWarn');
+  if (warn) warn.style.display = 'none';
+
   if (fb.ok && fb.auth.currentUser){
+    state.localAdmin = false;
     fb.auth.signOut().then(function(){ toast(T('admin.bye')); });
     return;
   }
-  state.isAdmin = false; save(LS.admin, false); setAdminUI();
+  state.isAdmin = false;
+  state.localAdmin = false;
+  save(LS.admin, false);
+  setAdminUI();
+  toast(T('admin.bye'));
 });
 
 $('.tabs').addEventListener('click', function(e){
