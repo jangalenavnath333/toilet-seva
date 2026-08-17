@@ -1835,7 +1835,12 @@ function typeLabel(t){
 function visibleToilets(){
   var q = state.query.trim().toLowerCase();
   var list = state.toilets.filter(function(t){
-    if (q && (t.name + ' ' + t.area).toLowerCase().indexOf(q) === -1) return false;
+    /* मराठी + इंग्रजी दोन्ही नावांत आणि परिसरात शोधा */
+    if (q){
+      var hay = [t.name, t.area, t.englishName, t.englishArea]
+        .filter(Boolean).join(' ').toLowerCase();
+      if (hay.indexOf(q) === -1) return false;
+    }
     if (state.filter === 'ladies' && t.type === 'gents') return false;
     if (state.filter === 'divyang' && !t.divyang) return false;
     if (state.filter === 'open' && !t.open) return false;
@@ -2379,9 +2384,11 @@ function compressPhoto(file, cb){
   reader.onload = function(ev){
     var img = new Image();
     img.onload = function(){
-      var LIMIT = 400000; /* 3 photos × ~400KB ≈ 1.2 MB safe for Firestore */
-      var width = 800, quality = 0.6, data = null;
-      for (var step = 0; step < 6; step++){
+      /* Firestore ची मर्यादा एका नोंदीसाठी 1 MiB (1,048,576 bytes).
+         3 फोटो + मजकूर एवढ्यात बसावेत म्हणून प्रत्येक फोटो 250 KB खाली ठेवतो. */
+      var LIMIT = 250000;
+      var width = 700, quality = 0.55, data = null;
+      for (var step = 0; step < 8; step++){
         var scale = Math.min(1, width / Math.max(img.width, img.height));
         var c = document.createElement('canvas');
         c.width = Math.round(img.width * scale);
@@ -2389,7 +2396,7 @@ function compressPhoto(file, cb){
         c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
         data = c.toDataURL('image/jpeg', quality);
         if (data.length <= LIMIT) break;
-        if (quality > 0.35) quality -= 0.1; else { width = Math.round(width * 0.8); quality = 0.5; }
+        if (quality > 0.3) quality -= 0.08; else { width = Math.round(width * 0.8); quality = 0.45; }
       }
       cb(data && data.length <= LIMIT ? data : null);
     };
@@ -2536,13 +2543,33 @@ $('#submitComplaint').addEventListener('click', function(){
 
   if (!fb.ok) return;
 
+  /* Firestore ची 1 MiB मर्यादा ओलांडत नाही ना — आधीच तपासा */
+  var approxBytes = new Blob([JSON.stringify(record)]).size;
+  if (approxBytes > 1000000){
+    /* फोटो वगळून फक्त मजकूर पाठवा, म्हणजे तक्रार तरी पोहोचेल */
+    var slim = JSON.parse(JSON.stringify(record));
+    slim.photos = [];
+    slim.photo = null;
+    slim.photoNote = 'फोटो खूप मोठे होते — पाठवता आले नाहीत';
+    fb.db.collection('complaints').add(slim).then(function(ref){
+      localRecord.id = ref.id;
+      save(LS.complaints, state.complaints);
+      if (state.isAdmin) renderAdmin();
+      toast('तक्रार पाठवली — पण फोटो खूप मोठे असल्याने वगळले');
+    }).catch(function(err){
+      console.warn('तक्रार साठवता आली नाही:', err);
+      toast(T('comp.savedLocal'));
+    });
+    return;
+  }
+
   fb.db.collection('complaints').add(record).then(function(ref){
     localRecord.id = ref.id;          // onSnapshot आल्यावर दुबार दिसू नये
     save(LS.complaints, state.complaints);
     if (state.isAdmin) renderAdmin();
   }).catch(function(err){
     console.warn('तक्रार साठवता आली नाही:', err);
-    toast(T('comp.savedLocal'));
+    toast('तक्रार क्लाउडवर गेली नाही — ' + (err.code || err.message));
   });
 });
 
